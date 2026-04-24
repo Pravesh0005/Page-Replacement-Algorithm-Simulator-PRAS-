@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Replacement Simulator | OS Memory Visualizer</title>
+<meta name="description" content="Interactive 3D simulator comparing FIFO, LRU, LFU & Optimal page replacement algorithms.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ==========================================================================
+   DESIGN TOKENS
+   ========================================================================== */
+:root {
+  --bg:            #f5f4f1;
+  --bg2:           #ffffff;
+  --bg3:           #eceae5;
+  --surface:       #ffffff;
+  --surface-glass: rgba(255,255,255,0.62);
+  --border:        #ddd9d2;
+  --border2:       #ccc8c0;
+  --text:          #111010;
+  --text2:         #3d3a36;
+  --text3:         #7a756e;
+  --accent:        #2563eb;
+  --accent2:       #1d4ed8;
+  --fifo:          #7c3aed;
+  --lru:           #0891b2;
+  --lfu:           #d97706;
+  --opt:           #059669;
+  --hit:           #059669;
+  --fault:         #dc2626;
+  --hit-bg:        rgba(5,150,105,0.1);
+  --fault-bg:      rgba(220,38,38,0.1);
+  --glass-blur:    22px;
+  --glass-border:  rgba(255,255,255,0.4);
+  --specular:      rgba(255,255,255,0.8);
+  --shimmer:       rgba(255,255,255,0.55);
+  --shadow-sm:     0 1px 3px rgba(0,0,0,0.07);
+  --shadow:        0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg:     0 16px 50px rgba(0,0,0,0.12);
+  --shadow-xl:     0 30px 80px rgba(0,0,0,0.16);
+  --r:             14px;
+  --r-sm:          8px;
+  --r-lg:          20px;
+  --r-xl:          28px;
+  /* Particle theming for light: dark bluish particles for contrast */
+  --p-color:       30,40,80;
+  --p-opacity:     0.55;
+  --p-line-opacity:0.12;
+  --p-shape-opacity:0.14;
+}
+
+/* ── TRUE BLACK DARK THEME ── */
+[data-theme="dark"] {
+  --bg:            #050505;
+  --bg2:           #0a0a0a;
+  --bg3:           #111111;
+  --surface:       rgba(14,14,14,0.88);
+  --surface-glass: rgba(12,12,12,0.6);
+  --border:        #1f1f1f;
+  --border2:       #2c2c2c;
+  --text:          #eae8e4;
+  --text2:         #a8a49c;
+  --text3:         #5c5850;
+  --accent:        #3b82f6;
+  --accent2:       #60a5fa;
+  --fifo:          #a78bfa;
+  --lru:           #22d3ee;
+  --lfu:           #fbbf24;
+  --opt:           #34d399;
+  --hit:           #34d399;
+  --fault:         #f87171;
+  --hit-bg:        rgba(52,211,153,0.1);
+  --fault-bg:      rgba(248,113,113,0.1);
+  --glass-blur:    26px;
+  --glass-border:  rgba(255,255,255,0.05);
+  --specular:      rgba(255,255,255,0.06);
+  --shimmer:       rgba(255,255,255,0.04);
+  --shadow-sm:     0 1px 4px rgba(0,0,0,0.6);
+  --shadow:        0 4px 20px rgba(0,0,0,0.7);
+  --shadow-lg:     0 16px 50px rgba(0,0,0,0.8);
+  --shadow-xl:     0 30px 80px rgba(0,0,0,0.9);
+  --p-color:       255,255,255;
+  --p-opacity:     0.5;
+  --p-line-opacity:0.08;
+  --p-shape-opacity:0.08;
+}
+
+/* ==========================================================================
+   RESET
+   ========================================================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:15px}
+body{
+  font-family:'Sora',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;min-height:100vh;overflow-x:hidden;
+  transition:background .5s,color .5s;
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ==========================================================================
+   THREE.JS CANVAS
+   ========================================================================== */
+#three-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* Grain */
+body::before{
+  content:'';position:fixed;inset:0;z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;opacity:0.25;
+}
+main{position:relative;z-index:2}
+
+/* ==========================================================================
+   HERO
+   ========================================================================== */
+.hero{position:relative;padding:5rem 2rem 4rem;text-align:center;overflow:hidden}
+
+/* 3D wireframe rings */
+.hero-ring{
+  position:absolute;top:50%;left:50%;
+  width:360px;height:360px;
+  transform:translate(-50%,-50%);
+  pointer-events:none;opacity:0.06;
+  perspective:800px;
+}
+.hero-ring-inner{
+  width:100%;height:100%;
+  border:2.5px solid var(--accent);border-radius:50%;
+  animation:heroSpin 25s linear infinite;
+  transform-style:preserve-3d;
+}
+.hero-ring-inner::before{
+  content:'';position:absolute;inset:-25px;
+  border:2px solid var(--fifo);border-radius:50%;
+  transform:rotateX(70deg);
+}
+.hero-ring-inner::after{
+  content:'';position:absolute;inset:-50px;
+  border:1.5px solid var(--opt);border-radius:50%;
+  transform:rotateY(70deg);
+}
+@keyframes heroSpin{from{transform:rotateX(30deg) rotateY(0)}to{transform:rotateX(30deg) rotateY(360deg)}}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface-glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(var(--glass-blur));
+  border-radius:100px;padding:6px 16px;margin-bottom:1.5rem;
+  font-size:.75rem;font-weight:600;color:var(--text3);
+  letter-spacing:.06em;text-transform:uppercase;
+  box-shadow:var(--shadow-sm);
+  animation:fadeDown .6s ease both;
+}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--opt);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+.hero h1{
+  font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800;line-height:1.1;
+  letter-spacing:-.03em;color:var(--text);margin-bottom:1rem;
+  animation:fadeDown .6s .1s ease both;
+}
+.hero h1 .line2{display:block;font-weight:300;color:var(--text2)}
+
+.hero-sub{
+  font-size:1.05rem;color:var(--text2);max-width:520px;margin:0 auto 2.5rem;
+  animation:fadeDown .6s .2s ease both;
+}
+
+/* Floating pills */
+.algo-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:1rem;animation:fadeDown .6s .3s ease both}
+.pill{
+  display:flex;align-items:center;gap:6px;padding:6px 14px;
+  border-radius:100px;font-size:.8rem;font-weight:600;
+  border:1.5px solid;backdrop-filter:blur(10px);
+  cursor:default;
+  transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+  animation:pillBob 3s ease-in-out infinite;
+}
+.pill:nth-child(1){animation-delay:0s}
+.pill:nth-child(2){animation-delay:.35s}
+.pill:nth-child(3){animation-delay:.7s}
+.pill:nth-child(4){animation-delay:1.05s}
+@keyframes pillBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.pill:hover{transform:translateY(-5px) scale(1.08)!important;box-shadow:var(--shadow-lg)}
+.pill-fifo{color:var(--fifo);border-color:var(--fifo);background:color-mix(in srgb,var(--fifo) 8%,transparent)}
+.pill-lru{color:var(--lru);border-color:var(--lru);background:color-mix(in srgb,var(--lru) 8%,transparent)}
+.pill-lfu{color:var(--lfu);border-color:var(--lfu);background:color-mix(in srgb,var(--lfu) 8%,transparent)}
+.pill-opt{color:var(--opt);border-color:var(--opt);background:color-mix(in srgb,var(--opt) 8%,transparent)}
+.pill-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* ==========================================================================
+   THEME TOGGLE
+   ========================================================================== */
+.theme-toggle{
+  position:fixed;top:20px;right:20px;z-index:1000;
+  width:52px;height:28px;
+  background:var(--surface-glass);border:1.5px solid var(--glass-border);
+  backdrop-filter:blur(16px);border-radius:100px;cursor:pointer;
+  box-shadow:var(--shadow);display:flex;align-items:center;padding:3px;
+  transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+}
+.theme-toggle:hover{box-shadow:var(--shadow-lg);transform:scale(1.1)}
+.theme-toggle:active{transform:scale(.92)}
+.toggle-knob{
+  width:20px;height:20px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 60%,var(--fifo)));
+  transition:transform .5s cubic-bezier(.34,1.56,.64,1);
+  display:flex;align-items:center;justify-content:center;font-size:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+[data-theme="dark"] .toggle-knob{transform:translateX(24px)}
+
+/* ==========================================================================
+   LAYOUT
+   ========================================================================== */
+.container{max-width:1100px;margin:0 auto;padding:0 1.5rem}
+
+/* ==========================================================================
+   CONTROL PANEL
+   ========================================================================== */
+.control-panel{
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1.5px solid var(--glass-border);border-radius:var(--r-xl);
+  padding:2.5rem;box-shadow:var(--shadow-lg);margin-bottom:2rem;
+  transition:box-shadow .3s,transform .3s;
+}
+.control-panel:hover{box-shadow:var(--shadow-xl);transform:translateY(-2px)}
+
+.panel-title{
+  font-size:.7rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:8px;
+}
+.panel-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+@media(max-width:640px){.controls-grid{grid-template-columns:1fr}}
+
+.field-label{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:.02em}
+.frame-row{display:flex;align-items:center;gap:12px}
+.frame-val{
+  min-width:48px;height:48px;
+  background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;
+  color:var(--accent);transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.frame-val.bump{animation:valBump .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes valBump{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+input[type=range]{-webkit-appearance:none;flex:1;height:6px;background:var(--bg3);border-radius:3px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:var(--accent);box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 40%,transparent);
+  cursor:pointer;transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
+
+.input-field{
+  width:100%;padding:12px 16px;
+  background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-sm);
+  color:var(--text);font-family:'Sora',sans-serif;font-size:.9rem;
+  transition:border-color .3s,box-shadow .3s;outline:none;
+}
+.input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent)}
+.input-field::placeholder{color:var(--text3)}
+select.input-field{cursor:pointer}
+
+.error-msg{display:none;margin-top:8px;padding:10px 14px;border-radius:var(--r-sm);
+  background:var(--fault-bg);border:1px solid color-mix(in srgb,var(--fault) 30%,transparent);
+  color:var(--fault);font-size:.82rem;font-weight:500}
+.error-msg.visible{display:flex;align-items:center;gap:8px}
+
+.btn-row{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ==========================================================================
+   BUTTONS — Pop + Ripple + Spring bounce
+   ========================================================================== */
+.btn{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:11px 20px;border-radius:var(--r-sm);
+  font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;
+  cursor:pointer;border:1.5px solid transparent;
+  outline:none;white-space:nowrap;
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .3s ease,background .3s,border-color .3s,color .3s;
+  /* GPU layer */
+  will-change:transform;
+}
+.btn:hover{transform:translateY(-4px) scale(1.04)}
+.btn:active{transform:scale(.93)!important;transition-duration:.1s}
+
+/* Pop-up entrance for buttons becoming visible */
+.btn-pop{animation:btnPopIn .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes btnPopIn{
+  from{opacity:0;transform:scale(.5) translateY(20px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+
+/* Ripple */
+.btn .ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.35);
+  transform:scale(0);animation:rippleOut .6s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes rippleOut{to{transform:scale(4);opacity:0}}
+
+.btn-primary{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+  box-shadow:0 4px 18px color-mix(in srgb,var(--accent) 35%,transparent);
+}
+.btn-primary:hover{background:var(--accent2);box-shadow:0 8px 28px color-mix(in srgb,var(--accent) 50%,transparent)}
+
+.btn-outline{
+  background:var(--surface-glass);color:var(--text2);border-color:var(--border);
+  backdrop-filter:blur(8px);
+}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
+
+.btn-ghost{background:transparent;color:var(--text3);border-color:transparent}
+.btn-ghost:hover{background:var(--bg3);color:var(--text2)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn.hidden{display:none}
+
+/* ==========================================================================
+   SCROLL-DRIVEN REVEALS — pop-in with spring physics
+   ========================================================================== */
+.reveal{opacity:0;transform:translateY(50px) scale(.96);transition:opacity .7s,transform .7s cubic-bezier(.22,1,.36,1)}
+.reveal.revealed{opacity:1;transform:translateY(0) scale(1)}
+
+.reveal-left{opacity:0;transform:translateX(-60px) scale(.96);transition:opacity .7s,transform .7s cubic-bezier(.22,1,.36,1)}
+.reveal-left.revealed{opacity:1;transform:translateX(0) scale(1)}
+.reveal-right{opacity:0;transform:translateX(60px) scale(.96);transition:opacity .7s,transform .7s cubic-bezier(.22,1,.36,1)}
+.reveal-right.revealed{opacity:1;transform:translateX(0) scale(1)}
+
+/* Heading wipe */
+.text-reveal{clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.22,1,.36,1)}
+.text-reveal.revealed{clip-path:inset(0 0 0 0)}
+
+/* Parallax scroll-driven section shift */
+.parallax-section{will-change:transform;transition:transform .1s linear}
+
+/* ==========================================================================
+   RESULTS
+   ========================================================================== */
+#results.hidden{display:none}
+#results{animation:popUp .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes popUp{from{opacity:0;transform:scale(.92) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.section-heading{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--text);margin-bottom:.4rem}
+.section-sub{font-size:.88rem;color:var(--text3);margin-bottom:1.5rem}
+
+/* ==========================================================================
+   WINNER CARD
+   ========================================================================== */
+.winner-card{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 50%,var(--fifo)));
+  border-radius:var(--r-xl);padding:2rem 2.5rem;
+  color:#fff;margin-bottom:2rem;
+  box-shadow:0 20px 60px color-mix(in srgb,var(--accent) 35%,transparent);
+  transform-style:preserve-3d;cursor:default;
+  transition:transform .12s,box-shadow .15s;
+  animation:winnerSlam .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes winnerSlam{
+  from{opacity:0;transform:scale(.7) rotateX(-10deg) translateY(40px)}
+  to{opacity:1;transform:scale(1) rotateX(0) translateY(0)}
+}
+.winner-card::before{content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none}
+.winner-card::after{content:'★';position:absolute;right:2rem;top:50%;transform:translateY(-50%);font-size:6rem;opacity:.08;line-height:1}
+.winner-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin-bottom:8px}
+.winner-name{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;min-height:2em}
+.winner-explain{font-size:.88rem;opacity:.85;line-height:1.7;max-width:600px}
+.winner-card.hidden{display:none}
+
+#confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:9999}
+
+/* ==========================================================================
+   STAT CARDS — 3D tilt + glassmorphism + shimmer + pop entrance
+   ========================================================================== */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:2rem}
+
+.stat-card{
+  position:relative;overflow:hidden;
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1.5px solid var(--glass-border);border-radius:var(--r-lg);padding:1.5rem;
+  box-shadow:var(--shadow);cursor:default;will-change:transform;
+  transition:transform .12s,box-shadow .2s;
+  transform-style:preserve-3d;
+}
+/* Specular highlight */
+.stat-card .specular{
+  position:absolute;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,var(--specular) 0%,transparent 70%);
+  pointer-events:none;opacity:0;transition:opacity .3s;
+  transform:translate(-50%,-50%);z-index:1;
+}
+.stat-card:hover .specular{opacity:1}
+
+/* Shimmer sweep */
+.stat-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,var(--shimmer) 50%,transparent 60%);
+  background-size:200% 100%;pointer-events:none;opacity:0;z-index:2;
+}
+.stat-card:hover::after{opacity:1;animation:shimSweep .7s ease forwards}
+@keyframes shimSweep{from{background-position:200% center}to{background-position:-200% center}}
+
+.stat-card:hover{box-shadow:var(--shadow-lg)}
+.stat-card.best{border-color:var(--opt);box-shadow:0 4px 24px color-mix(in srgb,var(--opt) 20%,transparent)}
+.stat-card .best-badge{
+  position:absolute;top:14px;right:14px;
+  background:var(--opt);color:#fff;font-size:.6rem;font-weight:800;
+  letter-spacing:.12em;padding:3px 8px;border-radius:100px;z-index:3;
+  animation:badgePop .5s .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes badgePop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+
+/* Pop-in for each stat card */
+.stat-card-pop{animation:cardPop .55s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes cardPop{
+  from{opacity:0;transform:scale(.6) translateY(30px) rotateX(-8deg)}
+  to{opacity:1;transform:scale(1) translateY(0) rotateX(0)}
+}
+
+.stat-algo{display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative;z-index:3}
+.stat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.stat-algo-name{font-size:.85rem;font-weight:700;letter-spacing:.04em}
+
+.stat-num{
+  font-size:3rem;font-weight:800;letter-spacing:-.04em;line-height:1;
+  margin-bottom:4px;font-family:'JetBrains Mono',monospace;
+  position:relative;z-index:3;
+}
+.stat-num-label{font-size:.75rem;color:var(--text3);font-weight:500;margin-bottom:1rem;position:relative;z-index:3}
+
+.stat-rows{display:flex;flex-direction:column;gap:6px;position:relative;z-index:3}
+.stat-row{display:flex;justify-content:space-between;align-items:center;font-size:.78rem}
+.stat-row-label{color:var(--text3)}
+.stat-row-val{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:.82rem}
+.val-hit{color:var(--hit)}.val-fault{color:var(--fault)}.val-cyan{color:var(--lru)}.val-amber{color:var(--lfu)}
+
+/* ==========================================================================
+   STEP CONTROLS
+   ========================================================================== */
+.step-controls-bar{
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1px solid var(--glass-border);border-radius:var(--r-lg);
+  padding:1.25rem 1.5rem;display:flex;align-items:center;flex-wrap:wrap;gap:12px;
+  margin-bottom:1.5rem;box-shadow:var(--shadow-sm);
+}
+.step-controls-bar.hidden{display:none}
+.step-progress-wrap{flex:1;min-width:120px}
+.step-progress-label{font-size:.75rem;color:var(--text3);margin-bottom:6px;font-weight:600}
+.step-progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.step-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--opt));transition:width .25s ease;width:0}
+
+/* ==========================================================================
+   STEP GRIDS — popping cells, flip animations, pulse/shake
+   ========================================================================== */
+.grids-section{margin-bottom:2rem}
+.grids-container{display:flex;flex-direction:column;gap:1.5rem}
+
+.algo-grid-wrap{
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1.5px solid var(--glass-border);border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--shadow);transition:box-shadow .3s,transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.algo-grid-wrap:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
+
+.algo-grid-head{
+  display:flex;align-items:center;gap:12px;
+  padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);
+  background:color-mix(in srgb,var(--bg) 50%,transparent);
+}
+.algo-head-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.algo-head-title{font-size:1rem;font-weight:700;letter-spacing:.02em}
+.algo-head-meta{margin-left:auto;font-size:.78rem;color:var(--text3);font-family:'JetBrains Mono',monospace}
+
+.grid-scroll-wrap{overflow-x:auto}
+.step-table{border-collapse:collapse;min-width:max-content;width:100%;font-family:'JetBrains Mono',monospace;font-size:.78rem}
+.step-table th,.step-table td{
+  border:1px solid var(--border);text-align:center;padding:8px 12px;min-width:38px;
+  transition:all .35s cubic-bezier(.34,1.56,.64,1);
+}
+.step-table th{background:var(--bg3);color:var(--text3);font-size:.7rem;font-weight:600;letter-spacing:.04em;position:sticky;top:0}
+.step-table td:first-child{
+  background:var(--bg3);color:var(--text3);font-size:.7rem;
+  position:sticky;left:0;z-index:2;min-width:80px;
+  font-family:'Sora',sans-serif;font-weight:600;
+}
+
+.cell-hit{background:var(--hit-bg)!important;color:var(--hit);font-weight:700}
+.cell-fault{background:var(--fault-bg)!important;color:var(--fault);font-weight:700}
+.cell-new{background:color-mix(in srgb,var(--accent) 10%,transparent)!important;color:var(--accent);font-weight:700}
+.cell-empty{color:var(--text3)}
+.cell-evict{background:color-mix(in srgb,var(--lfu) 10%,transparent)!important;color:var(--lfu)}
+.step-active{background:color-mix(in srgb,var(--accent) 8%,transparent)!important;outline:2px solid var(--accent);outline-offset:-2px}
+
+/* Cell pop-in (3D flip + scale pop) */
+.cell-pop{animation:cellPopIn .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes cellPopIn{
+  from{transform:perspective(400px) rotateY(90deg) scale(.5);opacity:0}
+  to{transform:perspective(400px) rotateY(0) scale(1);opacity:1}
+}
+
+/* Fault: red shake + pulse */
+.cell-fault-fx{animation:faultShake .5s ease both}
+@keyframes faultShake{
+  0%{transform:translateX(0);box-shadow:inset 0 0 0 0 var(--fault-bg)}
+  15%{transform:translateX(-4px) scale(1.1)}
+  30%{transform:translateX(4px) scale(1.05)}
+  45%{transform:translateX(-3px)}
+  60%{transform:translateX(2px);box-shadow:inset 0 0 20px 0 var(--fault-bg)}
+  100%{transform:translateX(0);box-shadow:inset 0 0 0 0 transparent}
+}
+
+/* Hit: green ripple glow */
+.cell-hit-fx{animation:hitGlow .5s ease both}
+@keyframes hitGlow{
+  0%{box-shadow:inset 0 0 0 0 var(--hit);transform:scale(1)}
+  50%{box-shadow:inset 0 0 18px 3px var(--hit-bg);transform:scale(1.12)}
+  100%{box-shadow:inset 0 0 0 0 transparent;transform:scale(1)}
+}
+
+/* ==========================================================================
+   CHARTS
+   ========================================================================== */
+.charts-section{margin-bottom:2rem}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:700px){.charts-grid{grid-template-columns:1fr}}
+
+.chart-card{
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1.5px solid var(--glass-border);border-radius:var(--r-lg);
+  padding:1.5rem;box-shadow:var(--shadow);
+  transform-style:preserve-3d;will-change:transform;position:relative;overflow:hidden;
+  transition:transform .12s,box-shadow .3s;
+}
+.chart-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,var(--shimmer) 50%,transparent 60%);
+  background-size:200% 100%;pointer-events:none;opacity:0;z-index:2;
+}
+.chart-card:hover::after{opacity:1;animation:shimSweep .7s ease forwards}
+.chart-card:hover{box-shadow:var(--shadow-lg)}
+.chart-title{font-size:.85rem;font-weight:700;color:var(--text2);margin-bottom:1rem;position:relative;z-index:3}
+.chart-wrap{position:relative;height:220px;z-index:3}
+
+/* ==========================================================================
+   EXPORT + BELADY
+   ========================================================================== */
+.export-card{
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1.5px solid var(--glass-border);border-radius:var(--r-lg);padding:1.5rem;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:1.5rem;box-shadow:var(--shadow-sm);
+}
+.export-text{flex:1}
+.export-text-title{font-size:.9rem;font-weight:700;margin-bottom:2px}
+.export-text-sub{font-size:.78rem;color:var(--text3)}
+
+.belady-card{
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1.5px dashed var(--lfu);border-radius:var(--r-lg);padding:1.5rem;margin-bottom:1.5rem;
+  box-shadow:0 4px 20px color-mix(in srgb,var(--lfu) 10%,transparent);
+  animation:cardPop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.belady-card.hidden{display:none}
+.belady-title{font-size:1rem;font-weight:700;margin-bottom:.5rem;color:var(--lfu)}
+.belady-desc{font-size:.82rem;color:var(--text2);margin-bottom:1rem;line-height:1.6}
+.belady-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px}
+.belady-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 16px;text-align:center}
+.belady-box-label{font-size:.7rem;color:var(--text3);font-weight:600;margin-bottom:6px}
+.belady-box-val{font-size:1.5rem;font-weight:800;font-family:'JetBrains Mono',monospace}
+.belady-verdict{padding:12px 16px;border-radius:var(--r-sm);font-size:.85rem;font-weight:600;line-height:1.6}
+.belady-verdict.anomaly{background:var(--fault-bg);color:var(--fault);border:1px solid color-mix(in srgb,var(--fault) 25%,transparent)}
+.belady-verdict.no-anomaly{background:var(--hit-bg);color:var(--hit);border:1px solid color-mix(in srgb,var(--hit) 25%,transparent)}
+
+/* ==========================================================================
+   ACCORDION
+   ========================================================================== */
+.theory-section{margin-bottom:2rem}
+.accordion{display:flex;flex-direction:column;gap:8px}
+.accordion-item{
+  background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
+  border:1.5px solid var(--glass-border);border-radius:var(--r);overflow:hidden;
+  transition:border-color .3s,transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.accordion-item:hover{border-color:var(--border2);transform:translateY(-2px)}
+.accordion-head{display:flex;align-items:center;gap:12px;padding:1rem 1.25rem;cursor:pointer;user-select:none;transition:background .2s}
+.accordion-head:hover{background:color-mix(in srgb,var(--bg3) 50%,transparent)}
+.acc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.acc-name{font-size:.9rem;font-weight:700}
+.acc-tag{margin-left:auto;font-size:.7rem;font-weight:700;letter-spacing:.08em;padding:3px 10px;border-radius:100px;opacity:.8}
+.acc-tag-practical{background:var(--hit-bg);color:var(--hit)}
+.acc-tag-optimal{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent)}
+.acc-tag-theoretical{background:color-mix(in srgb,var(--lfu) 10%,transparent);color:var(--lfu)}
+.acc-arrow{font-size:.75rem;color:var(--text3);margin-left:8px;transition:transform .25s}
+.accordion-item.open .acc-arrow{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1)}
+.accordion-item.open .accordion-body{max-height:400px}
+.accordion-content{padding:1.25rem;border-top:1px solid var(--border);font-size:.84rem;line-height:1.8;color:var(--text2)}
+.accordion-content strong{color:var(--text)}
+.acc-meta{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.acc-meta-item{display:flex;flex-direction:column;gap:2px}
+.acc-meta-key{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700}
+.acc-meta-val{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent);font-weight:600}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+footer{text-align:center;padding:2.5rem 1rem 3rem;font-size:.75rem;color:var(--text3);line-height:2;border-top:1px solid var(--border);margin-top:2rem;position:relative;z-index:2}
+footer a{color:var(--accent);text-decoration:none;font-weight:600}
+
+/* Sticky strip */
+.sticky-strip{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--surface-glass);backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);border-radius:100px;padding:8px 12px;
+  display:flex;gap:8px;align-items:center;box-shadow:var(--shadow-xl);z-index:500;
+  opacity:0;pointer-events:none;transition:opacity .3s,transform .5s cubic-bezier(.34,1.56,.64,1);
+}
+.sticky-strip.visible{opacity:1;pointer-events:all;animation:stripPop .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes stripPop{from{opacity:0;transform:translateX(-50%) translateY(30px) scale(.8)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+.sticky-strip .btn{border-radius:100px;padding:8px 16px;font-size:.8rem}
+
+/* Tooltip */
+.tooltip-wrap{position:relative;display:inline-block}
+.tooltip-text{
+  visibility:hidden;opacity:0;position:absolute;bottom:calc(100% + 8px);left:50%;
+  transform:translateX(-50%);background:var(--text);color:var(--bg);font-size:.73rem;
+  padding:7px 12px;border-radius:var(--r-sm);white-space:nowrap;pointer-events:none;
+  transition:opacity .2s,transform .2s;box-shadow:var(--shadow);z-index:100;
+}
+.tooltip-wrap:hover .tooltip-text{visibility:visible;opacity:1;transform:translateX(-50%) translateY(-3px)}
+
+.hidden{display:none!important}
+.mb-2{margin-bottom:2rem}
+.tilt-card{transform-style:preserve-3d;will-change:transform}
+
+/* ==========================================================================
+   WORLD-CLASS SCROLL EFFECTS
+   ========================================================================== */
+
+/* ── Scroll Progress Bar ── */
+.scroll-progress{
+  position:fixed;top:0;left:0;height:3px;z-index:2000;
+  background:linear-gradient(90deg,var(--fifo),var(--lru),var(--opt),var(--lfu));
+  width:0;transition:none;
+  box-shadow:0 0 12px color-mix(in srgb,var(--accent) 50%,transparent),
+             0 0 30px color-mix(in srgb,var(--accent) 20%,transparent);
+}
+
+/* ── Cursor Glow Trail ── */
+.cursor-glow{
+  position:fixed;width:350px;height:350px;
+  border-radius:50%;pointer-events:none;z-index:1;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 6%,transparent) 0%,transparent 70%);
+  transform:translate(-50%,-50%);
+  transition:left .15s ease-out,top .15s ease-out,opacity .3s;
+  opacity:0;
+}
+.cursor-glow.visible{opacity:1}
+[data-theme="dark"] .cursor-glow{
+  background:radial-gradient(circle,rgba(59,130,246,.06) 0%,transparent 70%);
+}
+
+/* ── Hero Parallax Zoom-Out on scroll ── */
+.hero{transition:none;will-change:transform,opacity,filter}
+
+/* ── Scroll-Down Indicator ── */
+.scroll-hint{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  animation:fadeDown .6s .8s ease both;
+  z-index:5;
+}
+.scroll-hint-text{
+  font-size:.65rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text3);
+}
+.scroll-hint-arrow{
+  width:24px;height:24px;border-right:2px solid var(--text3);border-bottom:2px solid var(--text3);
+  transform:rotate(45deg);
+  animation:scrollBounce 2s ease-in-out infinite;
+}
+@keyframes scrollBounce{
+  0%,100%{transform:rotate(45deg) translate(0,0);opacity:.4}
+  50%{transform:rotate(45deg) translate(5px,5px);opacity:1}
+}
+
+/* ── SVG Wave Section Dividers ── */
+.wave-divider{
+  position:relative;width:100%;overflow:hidden;line-height:0;
+  margin:-1px 0;
+  z-index:2;
+}
+.wave-divider svg{
+  display:block;width:100%;height:50px;
+}
+.wave-divider svg path{
+  fill:var(--bg);
+  transition:fill .5s;
+}
+.wave-divider.flip{transform:scaleY(-1)}
+
+/* ── Velocity-Driven Motion Blur ── */
+.velocity-blur{transition:filter .2s ease-out;will-change:filter}
+
+/* ── Scroll-Linked Section Tilt Entrance ── */
+.scroll-tilt{
+  will-change:transform,opacity;
+  transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .5s ease;
+}
+
+/* ── Stagger Cascade for children ── */
+.cascade-children>*{
+  opacity:0;transform:translateY(25px) scale(.97);
+  transition:opacity .5s ease,transform .5s cubic-bezier(.22,1,.36,1);
+}
+.cascade-children.cascaded>*:nth-child(1){transition-delay:.05s}
+.cascade-children.cascaded>*:nth-child(2){transition-delay:.12s}
+.cascade-children.cascaded>*:nth-child(3){transition-delay:.19s}
+.cascade-children.cascaded>*:nth-child(4){transition-delay:.26s}
+.cascade-children.cascaded>*:nth-child(5){transition-delay:.33s}
+.cascade-children.cascaded>*:nth-child(6){transition-delay:.4s}
+.cascade-children.cascaded>*:nth-child(7){transition-delay:.47s}
+.cascade-children.cascaded>*:nth-child(8){transition-delay:.54s}
+.cascade-children.cascaded>*{
+  opacity:1;transform:translateY(0) scale(1);
+}
+
+/* ── Parallax Speed Layers ── */
+.parallax-slow{will-change:transform}
+.parallax-fast{will-change:transform}
+
+/* ── Section Border Glow on scroll ── */
+.scroll-glow-border{
+  position:relative;
+}
+.scroll-glow-border::before{
+  content:'';position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(135deg,var(--fifo),var(--lru),var(--opt),var(--lfu));
+  z-index:-1;opacity:0;filter:blur(12px);
+  transition:opacity .6s ease;
+}
+.scroll-glow-border.glowing::before{opacity:.3}
+[data-theme="dark"] .scroll-glow-border.glowing::before{opacity:.15}
+
+</style>
+</head>
+<body>
+
+<canvas id="three-bg"></canvas>
+
+<!-- Scroll Progress Bar -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- Cursor Glow Trail -->
+<div class="cursor-glow" id="cursorGlow"></div>
+<canvas id="confettiCanvas"></canvas>
+
+<button class="theme-toggle" id="themeToggle" title="Toggle theme">
+  <div class="toggle-knob" id="toggleKnob">☀️</div>
+</button>
+
+<main>
+<section class="hero">
+  <div class="hero-ring"><div class="hero-ring-inner"></div></div>
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="hero-badge"><span class="badge-dot"></span>Operating Systems · Virtual Memory</div>
+    <h1>Page Replacement<span class="line2">Algorithm Simulator</span></h1>
+    <p class="hero-sub">Interactive comparison of all four OS page replacement algorithms with real-time step visualization, performance charts & Belady's Anomaly demo.</p>
+    <div class="algo-pills">
+      <div class="pill pill-fifo"><span class="pill-dot"></span>FIFO</div>
+      <div class="pill pill-lru"><span class="pill-dot"></span>LRU</div>
+      <div class="pill pill-lfu"><span class="pill-dot"></span>LFU</div>
+      <div class="pill pill-opt"><span class="pill-dot"></span>Optimal</div>
+    </div>
+    <!-- Scroll Down Indicator -->
+    <div class="scroll-hint" id="scrollHint">
+      <span class="scroll-hint-text">Scroll to explore</span>
+      <div class="scroll-hint-arrow"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Wave Divider after Hero -->
+<div class="wave-divider" id="waveHero">
+  <svg viewBox="0 0 1440 50" preserveAspectRatio="none"><path d="M0,20 C360,50 720,0 1080,30 C1260,45 1380,15 1440,25 L1440,50 L0,50 Z"></path></svg>
+</div>
+
+<div class="container">
+
+<div class="control-panel reveal parallax-section scroll-tilt scroll-glow-border">
+  <div class="panel-title">Simulation Input</div>
+  <div class="controls-grid">
+    <div>
+      <label class="field-label">Number of Page Frames</label>
+      <div class="frame-row">
+        <div class="frame-val" id="frameValue">3</div>
+        <input type="range" id="frameSlider" min="1" max="10" value="3">
+      </div>
+    </div>
+    <div>
+      <label class="field-label">Preset Examples</label>
+      <select id="presetSelect" class="input-field">
+        <option value="">— Select a preset —</option>
+        <option value="locality">📍 Locality of Reference</option>
+        <option value="thrashing">🔥 Thrashing Scenario</option>
+        <option value="sequential">➡️ Sequential Access</option>
+        <option value="looping">🔄 Loop Pattern</option>
+        <option value="belady">⚠️ Belady's Anomaly</option>
+        <option value="worstLRU">🧠 Worst Case LRU</option>
+        <option value="random20">🎲 Random (20 pages)</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-bottom:1.25rem;">
+    <label class="field-label">Reference String <span style="color:var(--text3);font-weight:400;">(space or comma separated)</span></label>
+    <input type="text" id="refString" class="input-field" placeholder="e.g. 7 0 1 2 0 3 0 4 2 3 0 3 2" value="7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1">
+    <div class="error-msg" id="refError"><span>⚠</span><span></span></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary magnetic-btn" id="btnRun">▶ Simulate All</button>
+    <button class="btn btn-outline" id="btnRandom">🎲 Random</button>
+    <button class="btn btn-ghost" id="btnClear">✕ Clear</button>
+    <button class="btn btn-outline hidden" id="btnStepMode">🦶 Step-Through</button>
+    <button class="btn btn-outline hidden" id="btnBelady">⚠️ Belady Demo</button>
+  </div>
+</div>
+
+<div id="results" class="hidden">
+  <div class="winner-card tilt-card hidden" id="winnerCard">
+    <div class="winner-label">🏆 Best Algorithm</div>
+    <div class="winner-name" id="winnerName"></div>
+    <div class="winner-explain" id="winnerExplanation"></div>
+  </div>
+
+  <div class="section-heading text-reveal" id="statsSectionTitle">Performance Summary</div>
+  <p class="section-sub reveal">Page fault counts, hit ratios & miss penalties across all algorithms.</p>
+  <div class="stats-grid cascade-children" id="statsGrid"></div>
+
+  <div class="step-controls-bar hidden" id="stepControls">
+    <button class="btn btn-outline" id="btnPrev">◀ Prev</button>
+    <button class="btn btn-primary" id="btnAutoPlay">⏩ Auto Play</button>
+    <button class="btn btn-outline" id="btnNext">Next ▶</button>
+    <div class="step-progress-wrap">
+      <div class="step-progress-label">Step <span id="currentStep">0</span> / <span id="totalSteps">0</span></div>
+      <div class="step-progress-bar"><div class="step-progress-fill" id="progressFill"></div></div>
+    </div>
+    <button class="btn btn-ghost" id="btnResetSteps">↩ Reset</button>
+  </div>
+
+  <!-- Wave Divider -->
+  <div class="wave-divider flip" style="margin-bottom:1rem"><svg viewBox="0 0 1440 50" preserveAspectRatio="none"><path d="M0,25 C240,5 480,45 720,20 C960,0 1200,40 1440,15 L1440,50 L0,50 Z"></path></svg></div>
+
+  <div class="grids-section reveal parallax-section scroll-tilt">
+    <div class="section-heading text-reveal">Step-by-Step Page Tables</div>
+    <p class="section-sub">🟢 H = Hit &nbsp;|&nbsp; 🔴 F = Page Fault &nbsp;|&nbsp; Highlighted = newly loaded</p>
+    <div class="grids-container cascade-children" id="gridsContainer"></div>
+  </div>
+
+  <!-- Wave Divider -->
+  <div class="wave-divider" style="margin-bottom:1rem"><svg viewBox="0 0 1440 50" preserveAspectRatio="none"><path d="M0,30 C360,5 720,45 1080,15 C1260,5 1380,35 1440,20 L1440,50 L0,50 Z"></path></svg></div>
+
+  <div class="charts-section reveal parallax-section scroll-tilt">
+    <div class="section-heading text-reveal">Visual Comparison</div>
+    <p class="section-sub">Cumulative faults over time and per-algorithm fault totals.</p>
+    <div class="charts-grid cascade-children">
+      <div class="chart-card tilt-card scroll-glow-border"><div class="chart-title">📊 Page Faults Comparison</div><div class="chart-wrap"><canvas id="barChart"></canvas></div></div>
+      <div class="chart-card tilt-card scroll-glow-border"><div class="chart-title">📈 Cumulative Faults Over Time</div><div class="chart-wrap"><canvas id="lineChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="export-card reveal">
+    <div class="export-text"><div class="export-text-title">Export Results</div><div class="export-text-sub">Download a PNG snapshot or full CSV data</div></div>
+    <button class="btn btn-outline" id="btnExportPng">📷 PNG</button>
+    <button class="btn btn-outline" id="btnExportCsv">📄 CSV</button>
+  </div>
+
+  <div class="belady-card hidden" id="beladySection">
+    <div class="belady-title">⚠️ Belady's Anomaly Demonstration</div>
+    <div class="belady-desc">With FIFO, increasing the number of frames can paradoxically <strong>increase</strong> page faults — a counter-intuitive property unique to non-stack algorithms.</div>
+    <div class="belady-grid" id="beladyResult"></div>
+    <div class="belady-verdict" id="beladyVerdict"></div>
+  </div>
+</div>
+
+<!-- Wave Divider -->
+<div class="wave-divider flip" style="margin-bottom:1rem"><svg viewBox="0 0 1440 50" preserveAspectRatio="none"><path d="M0,15 C480,50 960,5 1440,35 L1440,50 L0,50 Z"></path></svg></div>
+
+<div class="theory-section reveal mb-2 parallax-section scroll-tilt">
+  <div class="section-heading text-reveal">Algorithm Theory</div>
+  <p class="section-sub">OS theory, complexity, and real-world applications.</p>
+  <div class="accordion" id="accordionWrap">
+    <div class="accordion-item">
+      <div class="accordion-head" onclick="toggleAccordion(this)">
+        <div class="acc-dot" style="background:var(--fifo)"></div>
+        <div class="acc-name tooltip-wrap">FIFO — First In, First Out<span class="tooltip-text">Evicts the oldest page in memory.</span></div>
+        <span class="acc-tag acc-tag-practical">Simple</span><span class="acc-arrow">▼</span>
+      </div>
+      <div class="accordion-body"><div class="accordion-content">
+        <strong>Core Idea:</strong> Queue-based eviction — oldest page leaves first regardless of usage.<br><br>
+        <strong>Weakness:</strong> Susceptible to <strong>Belady's Anomaly</strong>. No practical OS uses pure FIFO.<br><br>
+        <strong>Real-world:</strong> Simple cache eviction in network routers/message queues.
+        <div class="acc-meta">
+          <div class="acc-meta-item"><div class="acc-meta-key">Time</div><div class="acc-meta-val">O(n·m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Space</div><div class="acc-meta-val">O(m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Stack?</div><div class="acc-meta-val">No ✗</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Belady safe?</div><div class="acc-meta-val">No ✗</div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="accordion-item">
+      <div class="accordion-head" onclick="toggleAccordion(this)">
+        <div class="acc-dot" style="background:var(--lru)"></div>
+        <div class="acc-name tooltip-wrap">LRU — Least Recently Used<span class="tooltip-text">Evicts the page not used for the longest time.</span></div>
+        <span class="acc-tag acc-tag-practical">Practical</span><span class="acc-arrow">▼</span>
+      </div>
+      <div class="accordion-body"><div class="accordion-content">
+        <strong>Core Idea:</strong> Tracks last-access timestamp. Evicts least-recently-accessed page.<br><br>
+        <strong>Stack Property:</strong> Immune to Belady's Anomaly. Pages with n frames ⊂ pages with n+1 frames.<br><br>
+        <strong>Real-world:</strong> Linux two-list LRU (active/inactive lists). ARM hardware access bits.
+        <div class="acc-meta">
+          <div class="acc-meta-item"><div class="acc-meta-key">Time</div><div class="acc-meta-val">O(n·m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Space</div><div class="acc-meta-val">O(m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Stack?</div><div class="acc-meta-val">Yes ✓</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Belady safe?</div><div class="acc-meta-val">Yes ✓</div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="accordion-item">
+      <div class="accordion-head" onclick="toggleAccordion(this)">
+        <div class="acc-dot" style="background:var(--lfu)"></div>
+        <div class="acc-name tooltip-wrap">LFU — Least Frequently Used<span class="tooltip-text">Evicts the page with fewest total accesses.</span></div>
+        <span class="acc-tag acc-tag-theoretical">Frequency</span><span class="acc-arrow">▼</span>
+      </div>
+      <div class="accordion-body"><div class="accordion-content">
+        <strong>Core Idea:</strong> Counts references per page. Evicts lowest-frequency page (FIFO tiebreak).<br><br>
+        <strong>Strength:</strong> Excellent for hot/cold page patterns.<br><br>
+        <strong>Weakness:</strong> Cache pollution — early-accessed pages persist too long. ARC combines LRU+LFU.
+        <div class="acc-meta">
+          <div class="acc-meta-item"><div class="acc-meta-key">Time</div><div class="acc-meta-val">O(n·m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Space</div><div class="acc-meta-val">O(m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Stack?</div><div class="acc-meta-val">No ✗</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Tie-break</div><div class="acc-meta-val">FIFO</div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="accordion-item">
+      <div class="accordion-head" onclick="toggleAccordion(this)">
+        <div class="acc-dot" style="background:var(--opt)"></div>
+        <div class="acc-name tooltip-wrap">OPT — Belady's Optimal<span class="tooltip-text">Evicts the page used farthest in the future. Theoretical optimal.</span></div>
+        <span class="acc-tag acc-tag-optimal">Optimal</span><span class="acc-arrow">▼</span>
+      </div>
+      <div class="accordion-body"><div class="accordion-content">
+        <strong>Core Idea:</strong> Requires future knowledge. Evicts page with <strong>farthest next use</strong>.<br><br>
+        <strong>Why it matters:</strong> Provably optimal lower bound. Benchmarks all other algorithms.<br><br>
+        <strong>Real-world:</strong> Impossible in OS (no oracle). Compilers/DB query planners can approximate.
+        <div class="acc-meta">
+          <div class="acc-meta-item"><div class="acc-meta-key">Time</div><div class="acc-meta-val">O(n²·m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Space</div><div class="acc-meta-val">O(m)</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Stack?</div><div class="acc-meta-val">Yes ✓</div></div>
+          <div class="acc-meta-item"><div class="acc-meta-key">Implementable?</div><div class="acc-meta-val">No ✗</div></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+</main>
+
+<div class="sticky-strip" id="stickyStrip">
+  <button class="btn btn-primary" id="stickyRun">▶ Re-Simulate</button>
+  <button class="btn btn-ghost" id="stickyStep">🦶 Step</button>
+  <button class="btn btn-ghost" id="stickyBelady">⚠️ Belady</button>
+</div>
+
+<footer>
+  <div>OS Page Replacement Algorithm Simulator &mdash; Built for academic excellence</div>
+  <div>FIFO · LRU · LFU · Optimal (Belady) &nbsp;|&nbsp; <a href="#">Built with Antigravity</a></div>
+</footer>
+
+<script>
+'use strict';
+
+/* ====================================================================
+   THREE.JS — Stronger particles, theme-adaptive colors, mouse reactive
+   ==================================================================== */
+(function(){
+  const canvas=document.getElementById('three-bg');
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth,window.innerHeight);
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
+  camera.position.z=30;
+
+  const mouse={x:0,y:0,tx:0,ty:0};
+  document.addEventListener('mousemove',e=>{
+    mouse.tx=(e.clientX/window.innerWidth-0.5)*2;
+    mouse.ty=(e.clientY/window.innerHeight-0.5)*2;
+  });
+
+  // --- Particles ---
+  const N=150;
+  const pos=new Float32Array(N*3);
+  const vel=[];
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-.5)*65;
+    pos[i*3+1]=(Math.random()-.5)*55;
+    pos[i*3+2]=(Math.random()-.5)*35;
+    vel.push({x:(Math.random()-.5)*.014,y:(Math.random()-.5)*.014,z:(Math.random()-.5)*.01});
+  }
+  const pGeo=new THREE.BufferGeometry();
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const pMat=new THREE.PointsMaterial({size:.18,transparent:true,sizeAttenuation:true});
+  const pts=new THREE.Points(pGeo,pMat);
+  scene.add(pts);
+
+  // --- Lines ---
+  const maxL=N*6;
+  const lPos=new Float32Array(maxL*6);
+  const lGeo=new THREE.BufferGeometry();
+  lGeo.setAttribute('position',new THREE.BufferAttribute(lPos,3));
+  const lMat=new THREE.LineBasicMaterial({transparent:true});
+  const lines=new THREE.LineSegments(lGeo,lMat);
+  scene.add(lines);
+
+  // --- Shapes ---
+  const shapes=[];
+  const geos=[
+    new THREE.IcosahedronGeometry(1.3,0),
+    new THREE.OctahedronGeometry(1.1,0),
+    new THREE.IcosahedronGeometry(.9,1),
+    new THREE.TetrahedronGeometry(1,0),
+    new THREE.DodecahedronGeometry(.8,0),
+  ];
+  for(let i=0;i<7;i++){
+    const geo=geos[i%geos.length];
+    const mat=new THREE.MeshBasicMaterial({wireframe:true,transparent:true});
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.position.set((Math.random()-.5)*45,(Math.random()-.5)*35,(Math.random()-.5)*18-5);
+    mesh.userData={
+      rx:(Math.random()-.5)*.009,ry:(Math.random()-.5)*.012,rz:(Math.random()-.5)*.007,
+      fs:.3+Math.random()*.4,fa:.6+Math.random()*1.2,by:mesh.position.y
+    };
+    scene.add(mesh);shapes.push(mesh);
+  }
+
+  // --- Color sync ---
+  function syncColors(){
+    const cs=getComputedStyle(document.documentElement);
+    const pc=cs.getPropertyValue('--p-color').trim();
+    const po=parseFloat(cs.getPropertyValue('--p-opacity'))||.5;
+    const lo=parseFloat(cs.getPropertyValue('--p-line-opacity'))||.1;
+    const so=parseFloat(cs.getPropertyValue('--p-shape-opacity'))||.1;
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    const hex=isDark?0xffffff:0x1e2850;
+    pMat.color.setHex(hex);pMat.opacity=po;
+    lMat.color.setHex(hex);lMat.opacity=lo;
+    shapes.forEach(s=>{s.material.color.setHex(hex);s.material.opacity=so});
+  }
+  syncColors();
+  new MutationObserver(syncColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  const CD=8.5;
+  let time=0;
+
+  function animate(){
+    requestAnimationFrame(animate);
+    time+=.016;
+    mouse.x+=(mouse.tx-mouse.x)*.06;
+    mouse.y+=(mouse.ty-mouse.y)*.06;
+    camera.position.x=mouse.x*3.5;
+    camera.position.y=-mouse.y*2.5;
+    camera.lookAt(0,0,0);
+
+    const p=pts.geometry.attributes.position.array;
+    for(let i=0;i<N;i++){
+      p[i*3]+=vel[i].x;p[i*3+1]+=vel[i].y;p[i*3+2]+=vel[i].z;
+      if(p[i*3]>32)p[i*3]=-32;if(p[i*3]<-32)p[i*3]=32;
+      if(p[i*3+1]>27)p[i*3+1]=-27;if(p[i*3+1]<-27)p[i*3+1]=27;
+      if(p[i*3+2]>17)p[i*3+2]=-17;if(p[i*3+2]<-17)p[i*3+2]=17;
+    }
+    pts.geometry.attributes.position.needsUpdate=true;
+
+    let li=0;
+    const lp=lines.geometry.attributes.position.array;
+    for(let i=0;i<N&&li<maxL;i++){
+      for(let j=i+1;j<N&&li<maxL;j++){
+        const dx=p[i*3]-p[j*3],dy=p[i*3+1]-p[j*3+1],dz=p[i*3+2]-p[j*3+2];
+        if(Math.abs(dx)<CD&&Math.abs(dy)<CD&&Math.abs(dz)<CD){
+          const d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+          if(d<CD){
+            lp[li*6]=p[i*3];lp[li*6+1]=p[i*3+1];lp[li*6+2]=p[i*3+2];
+            lp[li*6+3]=p[j*3];lp[li*6+4]=p[j*3+1];lp[li*6+5]=p[j*3+2];
+            li++;
+          }
+        }
+      }
+    }
+    for(let i=li*6;i<maxL*6;i++)lp[i]=0;
+    lines.geometry.attributes.position.needsUpdate=true;
+    lines.geometry.setDrawRange(0,li*2);
+
+    shapes.forEach(s=>{
+      s.rotation.x+=s.userData.rx;s.rotation.y+=s.userData.ry;s.rotation.z+=s.userData.rz;
+      s.position.y=s.userData.by+Math.sin(time*s.userData.fs)*s.userData.fa;
+    });
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+  });
+})();
+
+/* ====================================================================
+   CONFETTI
+   ==================================================================== */
+const cCanvas=document.getElementById('confettiCanvas');
+const cCtx=cCanvas.getContext('2d');
+let confetti=[],cAnim=null;
+function resizeC(){cCanvas.width=window.innerWidth;cCanvas.height=window.innerHeight}
+resizeC();window.addEventListener('resize',resizeC);
+
+function launchConfetti(){
+  confetti=[];
+  const colors=['#3b82f6','#22d3ee','#f59e0b','#10b981','#ec4899','#a78bfa','#f87171','#fbbf24'];
+  for(let i=0;i<180;i++){
+    confetti.push({
+      x:window.innerWidth*.5+(Math.random()-.5)*250,
+      y:window.innerHeight*.3,
+      w:5+Math.random()*7,h:3+Math.random()*5,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      vx:(Math.random()-.5)*16,vy:-(Math.random()*14+5),
+      rot:Math.random()*360,rv:(Math.random()-.5)*18,
+      g:.17+Math.random()*.09,op:1
+    });
+  }
+  if(cAnim)cancelAnimationFrame(cAnim);
+  drawConfetti();
+}
+function drawConfetti(){
+  cCtx.clearRect(0,0,cCanvas.width,cCanvas.height);
+  let alive=false;
+  for(const p of confetti){
+    if(p.op<=0)continue;alive=true;
+    p.x+=p.vx;p.vy+=p.g;p.y+=p.vy;p.rot+=p.rv;p.vx*=.99;
+    if(p.y>cCanvas.height+20){p.op=0;continue}
+    if(p.y>cCanvas.height*.65)p.op-=.025;
+    cCtx.save();cCtx.translate(p.x,p.y);cCtx.rotate(p.rot*Math.PI/180);
+    cCtx.globalAlpha=Math.max(0,p.op);cCtx.fillStyle=p.color;
+    cCtx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cCtx.restore();
+  }
+  if(alive)cAnim=requestAnimationFrame(drawConfetti);
+}
+
+/* ====================================================================
+   THEME TOGGLE
+   ==================================================================== */
+const themeToggle=document.getElementById('themeToggle');
+const toggleKnob=document.getElementById('toggleKnob');
+function setTheme(d){
+  document.documentElement.setAttribute('data-theme',d?'dark':'light');
+  toggleKnob.textContent=d?'🌙':'☀️';
+  localStorage.setItem('theme',d?'dark':'light');
+}
+setTheme((localStorage.getItem('theme')||'light')==='dark');
+themeToggle.addEventListener('click',()=>{
+  setTheme(document.documentElement.getAttribute('data-theme')==='light');
+});
+
+/* ====================================================================
+   SCROLL REVEALS — IntersectionObserver with staggered pop
+   ==================================================================== */
+const revObs=new IntersectionObserver((entries)=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      setTimeout(()=>e.target.classList.add('revealed'),i*60);
+      revObs.unobserve(e.target);
+    }
+  });
+},{threshold:.08});
+function observeAll(){
+  document.querySelectorAll('.reveal:not(.revealed),.reveal-left:not(.revealed),.reveal-right:not(.revealed),.text-reveal:not(.revealed)').forEach(el=>revObs.observe(el));
+}
+observeAll();
+
+/* ====================================================================
+   GOD-TIER SCROLL ENGINE — single rAF loop driving all scroll effects
+   ==================================================================== */
+const scrollState={y:0,prevY:0,velocity:0,rafId:null,ticking:false};
+const scrollProgress=document.getElementById('scrollProgress');
+const cursorGlow=document.getElementById('cursorGlow');
+const scrollHint=document.getElementById('scrollHint');
+const heroEl=document.querySelector('.hero');
+let mouseX=0,mouseY=0;
+
+// Mouse tracking for cursor glow
+document.addEventListener('mousemove',e=>{
+  mouseX=e.clientX;mouseY=e.clientY;
+  cursorGlow.style.left=mouseX+'px';
+  cursorGlow.style.top=mouseY+'px';
+  if(!cursorGlow.classList.contains('visible'))cursorGlow.classList.add('visible');
+});
+document.addEventListener('mouseleave',()=>cursorGlow.classList.remove('visible'));
+
+function onScrollTick(){
+  scrollState.y=window.scrollY;
+  if(!scrollState.ticking){scrollState.ticking=true;requestAnimationFrame(scrollLoop)}
+}
+
+function scrollLoop(){
+  scrollState.ticking=false;
+  const sy=scrollState.y;
+  const vh=window.innerHeight;
+  const docH=document.documentElement.scrollHeight-vh;
+
+  // ─── 1. Scroll Progress Bar ───
+  const pct=docH>0?(sy/docH)*100:0;
+  scrollProgress.style.width=pct+'%';
+
+  // ─── 2. Hero Parallax Zoom-Out + Fade ───
+  if(heroEl){
+    const heroH=heroEl.offsetHeight;
+    const heroProgress=Math.min(sy/heroH,1);
+    const scale=1-heroProgress*0.15;
+    const opacity=1-heroProgress*0.7;
+    const blur=heroProgress*6;
+    const translateY=sy*0.35;
+    heroEl.style.transform=`translateY(${translateY}px) scale(${scale})`;
+    heroEl.style.opacity=Math.max(0,opacity);
+    heroEl.style.filter=blur>0.5?`blur(${blur}px)`:'';
+  }
+
+  // ─── 3. Scroll-Down Hint — fade away ───
+  if(scrollHint){
+    scrollHint.style.opacity=Math.max(0,1-sy/150);
+    scrollHint.style.transform=`translateX(-50%) translateY(${sy*0.3}px)`;
+  }
+
+  // ─── 4. Velocity-Based Motion Blur ───
+  scrollState.velocity=Math.abs(sy-scrollState.prevY);
+  scrollState.prevY=sy;
+  const blurAmt=Math.min(scrollState.velocity*0.15,4);
+  document.querySelectorAll('.velocity-blur').forEach(el=>{
+    el.style.filter=blurAmt>0.3?`blur(${blurAmt}px)`:'';
+  });
+
+  // ─── 5. Parallax sections — real-time shift ───
+  document.querySelectorAll('.parallax-section').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    const center=rect.top+rect.height/2;
+    const vCenter=vh/2;
+    const offset=(center-vCenter)*0.04;
+    // Preserve existing tilt transforms
+    const existingTransform=el.style.transform||'';
+    if(!existingTransform.includes('rotateX'))
+      el.style.transform=`translateY(${offset}px)`;
+  });
+
+  // ─── 6. Scroll-Linked Section Tilt ───
+  document.querySelectorAll('.scroll-tilt').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    const progress=(rect.top)/(vh);
+    // Tilt from 2deg to 0 as element enters viewport
+    const tilt=Math.max(0,Math.min(2,progress*2.5));
+    const scale=Math.max(0.96,1-Math.max(0,progress)*0.04);
+    if(rect.top<vh&&rect.bottom>0){
+      el.style.transform=`perspective(1200px) rotateX(${tilt}deg) scale(${scale}) translateY(${progress*15}px)`;
+      el.style.opacity=Math.min(1,Math.max(0.3,1-progress*0.5));
+    }
+  });
+
+  // ─── 7. Cascade Children Stagger Trigger ───
+  document.querySelectorAll('.cascade-children:not(.cascaded)').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    if(rect.top<vh*0.85){
+      el.classList.add('cascaded');
+    }
+  });
+
+  // ─── 8. Scroll-Glow Border Activation ───
+  document.querySelectorAll('.scroll-glow-border').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    const inView=rect.top<vh*0.75&&rect.bottom>vh*0.15;
+    el.classList.toggle('glowing',inView);
+  });
+}
+
+window.addEventListener('scroll',onScrollTick,{passive:true});
+// Run once on load
+requestAnimationFrame(scrollLoop);
+
+/* ====================================================================
+   3D TILT — cards follow cursor with specular highlight
+   ==================================================================== */
+function initTilt(el){
+  el.addEventListener('mousemove',e=>{
+    const r=el.getBoundingClientRect();
+    const dx=(e.clientX-r.left-r.width/2)/r.width*16;
+    const dy=(e.clientY-r.top-r.height/2)/r.height*16;
+    el.style.transform=`perspective(800px) rotateY(${dx}deg) rotateX(${-dy}deg) scale(1.03)`;
+    // Move specular
+    const spec=el.querySelector('.specular');
+    if(spec){spec.style.left=(e.clientX-r.left)+'px';spec.style.top=(e.clientY-r.top)+'px'}
+  });
+  el.addEventListener('mouseleave',()=>{el.style.transform='perspective(800px) rotateY(0) rotateX(0) scale(1)'});
+}
+document.querySelectorAll('.tilt-card').forEach(initTilt);
+
+/* ====================================================================
+   MAGNETIC BUTTON
+   ==================================================================== */
+document.querySelectorAll('.magnetic-btn').forEach(btn=>{
+  btn.addEventListener('mousemove',e=>{
+    const r=btn.getBoundingClientRect();
+    const dx=e.clientX-r.left-r.width/2;
+    const dy=e.clientY-r.top-r.height/2;
+    const d=Math.sqrt(dx*dx+dy*dy);
+    if(d<80){
+      const p=(1-d/80)*10;
+      btn.style.transform=`translate(${dx*p/80}px,${dy*p/80}px) scale(1.06)`;
+    }
+  });
+  btn.addEventListener('mouseleave',()=>{btn.style.transform=''});
+});
+
+/* ====================================================================
+   RIPPLE on all buttons
+   ==================================================================== */
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.btn');
+  if(!btn)return;
+  const rip=document.createElement('span');rip.classList.add('ripple');
+  const r=btn.getBoundingClientRect();
+  const sz=Math.max(r.width,r.height)*2;
+  rip.style.width=rip.style.height=sz+'px';
+  rip.style.left=(e.clientX-r.left-sz/2)+'px';
+  rip.style.top=(e.clientY-r.top-sz/2)+'px';
+  btn.appendChild(rip);
+  rip.addEventListener('animationend',()=>rip.remove());
+});
+
+/* ====================================================================
+   DOM
+   ==================================================================== */
+const DOM={
+  frameSlider:document.getElementById('frameSlider'),
+  frameValue:document.getElementById('frameValue'),
+  refString:document.getElementById('refString'),
+  refError:document.getElementById('refError'),
+  presetSelect:document.getElementById('presetSelect'),
+  btnRun:document.getElementById('btnRun'),
+  btnRandom:document.getElementById('btnRandom'),
+  btnClear:document.getElementById('btnClear'),
+  btnStepMode:document.getElementById('btnStepMode'),
+  btnBelady:document.getElementById('btnBelady'),
+  results:document.getElementById('results'),
+  statsGrid:document.getElementById('statsGrid'),
+  winnerCard:document.getElementById('winnerCard'),
+  winnerName:document.getElementById('winnerName'),
+  winnerExplan:document.getElementById('winnerExplanation'),
+  gridsContainer:document.getElementById('gridsContainer'),
+  stepControls:document.getElementById('stepControls'),
+  btnPrev:document.getElementById('btnPrev'),
+  btnNext:document.getElementById('btnNext'),
+  btnAutoPlay:document.getElementById('btnAutoPlay'),
+  btnResetSteps:document.getElementById('btnResetSteps'),
+  currentStep:document.getElementById('currentStep'),
+  totalSteps:document.getElementById('totalSteps'),
+  progressFill:document.getElementById('progressFill'),
+  barChart:document.getElementById('barChart'),
+  lineChart:document.getElementById('lineChart'),
+  btnExportPng:document.getElementById('btnExportPng'),
+  btnExportCsv:document.getElementById('btnExportCsv'),
+  beladySection:document.getElementById('beladySection'),
+  beladyResult:document.getElementById('beladyResult'),
+  beladyVerdict:document.getElementById('beladyVerdict'),
+  stickyStrip:document.getElementById('stickyStrip'),
+};
+
+/* ==================================================================== */
+const PRESETS={
+  locality:{ref:'1 2 3 2 1 2 3 4 3 2 1 2',frames:3},
+  thrashing:{ref:'1 2 3 4 5 1 2 3 4 5 1 2 3 4 5',frames:3},
+  sequential:{ref:'0 1 2 3 4 5 6 7 8 9',frames:4},
+  looping:{ref:'1 2 3 4 1 2 5 1 2 3 4 5',frames:4},
+  belady:{ref:'1 2 3 4 1 2 5 1 2 3 4 5',frames:3},
+  worstLRU:{ref:'1 2 3 4 5 1 2 3 4 5 1 2 3 4 5',frames:4},
+  random20:{ref:'',frames:4},
+};
+
+let simResults=null,stepMode=false,currentStepIdx=0,autoPlayInterval=null,barChartInst=null,lineChartInst=null;
+
+function parseRefString(s){if(!s||!s.trim())return null;const t=s.trim().split(/[\s,]+/),a=[];for(const x of t){if(!x)continue;const n=parseInt(x,10);if(isNaN(n)||n<0||n>99)return null;a.push(n)}return a.length?a:null}
+function generateRandom(l=20,m=9){return Array.from({length:l},()=>Math.floor(Math.random()*(m+1)))}
+function showError(m){DOM.refError.querySelector('span:last-child').textContent=m;DOM.refError.classList.add('visible')}
+function clearError(){DOM.refError.classList.remove('visible')}
+
+/* Elastic counter */
+function animateCount(el,target,dur=900){
+  const start=performance.now();
+  const update=(now)=>{
+    let t=Math.min((now-start)/dur,1);
+    const c4=(2*Math.PI)/3;
+    const ease=t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-.75)*c4)+1;
+    el.textContent=Math.round(ease*target);
+    if(t<1)requestAnimationFrame(update);else el.textContent=target;
+  };
+  requestAnimationFrame(update);
+}
+
+function typeWriter(el,text,speed=30){el.textContent='';let i=0;(function t(){if(i<text.length){el.textContent+=text.charAt(i);i++;setTimeout(t,speed)}}())}
+
+/* ====================================================================
+   ALGORITHMS — 100% preserved
+   ==================================================================== */
+function simulateFIFO(r,f){const m=[];let p=0,fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{ev=m[p];m[p]=pg;p=(p+1)%f}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
+function simulateLRU(r,f){const m=[],lu={};let fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;lu[pg]=i;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{let lp=m[0],lt=lu[m[0]];for(let j=1;j<m.length;j++)if(lu[m[j]]<lt){lt=lu[m[j]];lp=m[j]}ev=lp;m[m.indexOf(lp)]=pg}lu[pg]=i;t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
+function simulateLFU(r,f){const m=[],fr={},lo={};let fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;fr[pg]++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f){m.push(pg);fr[pg]=1;lo[pg]=i}else{let lp=m[0],lf=fr[m[0]],ll=lo[m[0]];for(let j=1;j<m.length;j++){const p=m[j];if(fr[p]<lf||(fr[p]===lf&&lo[p]<ll)){lp=p;lf=fr[p];ll=lo[p]}}ev=lp;delete fr[lp];delete lo[lp];m[m.indexOf(lp)]=pg;fr[pg]=1;lo[pg]=i}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
+function simulateOPT(r,f){const m=[];let fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{let far=-1,vi=0;for(let j=0;j<m.length;j++){let nu=-1;for(let k=i+1;k<r.length;k++)if(r[k]===m[j]){nu=k;break}if(nu===-1){vi=j;break}if(nu>far){far=nu;vi=j}}ev=m[vi];m[vi]=pg}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
+function bldCum(t){let c=0;return t.map(s=>{if(s.isFault)c++;return c})}
+
+/* ====================================================================
+   SIMULATION RUNNER
+   ==================================================================== */
+function runSimulation(){
+  clearError();stopAutoPlay();
+  const f=parseInt(DOM.frameSlider.value,10);
+  const ref=parseRefString(DOM.refString.value);
+  if(!ref){showError('Enter valid reference string (integers 0–99, space/comma separated).');return}
+  if(ref.length>100){showError('Max 100 entries.');return}
+  simResults={fifo:simulateFIFO(ref,f),lru:simulateLRU(ref,f),lfu:simulateLFU(ref,f),opt:simulateOPT(ref,f),_ref:ref,_frames:f};
+  renderResults();
+}
+
+/* ====================================================================
+   RENDERING
+   ==================================================================== */
+const ALGOS=[{key:'fifo',name:'FIFO',color:'var(--fifo)'},{key:'lru',name:'LRU',color:'var(--lru)'},{key:'lfu',name:'LFU',color:'var(--lfu)'},{key:'opt',name:'OPT',color:'var(--opt)'}];
+function gc(v){return getComputedStyle(document.documentElement).getPropertyValue(v.replace('var(','').replace(')','').trim()).trim()}
+
+function renderResults(){
+  const r=simResults,rl=r._ref.length;
+  DOM.results.classList.remove('hidden');
+  DOM.btnStepMode.classList.remove('hidden');DOM.btnStepMode.classList.add('btn-pop');
+  DOM.btnBelady.classList.remove('hidden');DOM.btnBelady.classList.add('btn-pop');
+  stepMode=false;currentStepIdx=0;DOM.stepControls.classList.add('hidden');
+
+  let bk='opt',bf=Infinity;
+  for(const a of ALGOS)if(r[a.key].faults<bf){bf=r[a.key].faults;bk=a.key}
+
+  // Stats with staggered pop
+  DOM.statsGrid.innerHTML=ALGOS.map((a,i)=>{
+    const d=r[a.key],best=a.key===bk;
+    const hr=rl?((d.hits/rl)*100).toFixed(1):'0.0';
+    const fr=rl?((d.faults/rl)*100).toFixed(1):'0.0';
+    return `
+      <div class="stat-card ${best?'best':''} stat-card-pop" style="border-top:3px solid ${a.color};animation-delay:${i*.12}s">
+        <div class="specular"></div>
+        ${best?'<div class="best-badge">BEST</div>':''}
+        <div class="stat-algo"><div class="stat-dot" style="background:${a.color}"></div><div class="stat-algo-name" style="color:${a.color}">${a.name}</div></div>
+        <div class="stat-num" data-target="${d.faults}" style="color:${best?'var(--opt)':'var(--text)'}">${d.faults}</div>
+        <div class="stat-num-label">Page Faults</div>
+        <div class="stat-rows">
+          <div class="stat-row"><span class="stat-row-label">Hits</span><span class="stat-row-val val-hit">${d.hits}</span></div>
+          <div class="stat-row"><span class="stat-row-label">Hit Ratio</span><span class="stat-row-val val-cyan">${hr}%</span></div>
+          <div class="stat-row"><span class="stat-row-label">Fault Ratio</span><span class="stat-row-val val-fault">${fr}%</span></div>
+          <div class="stat-row"><span class="stat-row-label">Miss Penalty</span><span class="stat-row-val val-amber">${d.faults*10}ms</span></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Count-up on scroll
+  const cObs=new IntersectionObserver(es=>{
+    es.forEach(e=>{if(e.isIntersecting){animateCount(e.target,parseInt(e.target.dataset.target,10),900);cObs.unobserve(e.target)}});
+  },{threshold:.5});
+  document.querySelectorAll('.stat-num').forEach(el=>cObs.observe(el));
+
+  document.querySelectorAll('.stat-card').forEach(initTilt);
+  observeAll();
+
+  // Winner
+  const ba=ALGOS.find(a=>a.key===bk);
+  DOM.winnerCard.classList.remove('hidden');
+  typeWriter(DOM.winnerName,`${ba.name} wins — only ${bf} page fault${bf!==1?'s':''}!`,30);
+  DOM.winnerExplan.innerHTML=getWinExp(bk,r);
+  setTimeout(launchConfetti,350);
+
+  renderGrids();renderCharts();
+  DOM.stickyStrip.classList.add('visible');
+
+  // ───── GUIDED SCROLL TOUR ─────
+  // Smoothly scroll through each section so user watches each animate in
+  guidedScrollTour();
+}
+
+function guidedScrollTour(){
+  const sections=[
+    {el:DOM.winnerCard, delay:0, label:'Winner'},
+    {el:DOM.statsGrid, delay:1400, label:'Stats'},
+    {el:document.querySelector('.grids-section'), delay:2800, label:'Grids'},
+    {el:document.querySelector('.charts-section'), delay:4400, label:'Charts'},
+  ];
+
+  // Reset cascade classes so they animate fresh
+  document.querySelectorAll('.cascade-children.cascaded').forEach(el=>el.classList.remove('cascaded'));
+  document.querySelectorAll('.reveal.revealed').forEach(el=>{
+    if(DOM.results.contains(el)){el.classList.remove('revealed')}
+  });
+  document.querySelectorAll('.text-reveal.revealed').forEach(el=>{
+    if(DOM.results.contains(el)){el.classList.remove('revealed')}
+  });
+
+  sections.forEach((s,i)=>{
+    if(!s.el)return;
+    setTimeout(()=>{
+      s.el.scrollIntoView({behavior:'smooth',block:'center'});
+      // Re-trigger reveals/cascades after scrolling there
+      setTimeout(()=>{
+        // Trigger IntersectionObserver reveals
+        observeAll();
+        // Force cascade trigger
+        document.querySelectorAll('.cascade-children:not(.cascaded)').forEach(cel=>{
+          const rect=cel.getBoundingClientRect();
+          if(rect.top<window.innerHeight)cel.classList.add('cascaded');
+        });
+        // Force scroll-glow
+        document.querySelectorAll('.scroll-glow-border').forEach(gel=>{
+          const rect=gel.getBoundingClientRect();
+          const inView=rect.top<window.innerHeight*0.8&&rect.bottom>window.innerHeight*0.1;
+          if(inView)gel.classList.add('glowing');
+        });
+      },400);
+    },s.delay);
+  });
+}
+
+function getWinExp(k,r){
+  const e={
+    fifo:`<strong>FIFO</strong> aligned with this pattern's access order. Unusual — FIFO lacks recency/frequency awareness.`,
+    lru:`<strong>LRU</strong> leveraged temporal locality — evicting least-recently-used pages. Stack algorithm, immune to Belady's Anomaly.`,
+    lfu:`<strong>LFU</strong> exploited frequency-based locality — keeping hot pages resident.`,
+    opt:`<strong>OPT</strong> achieved the theoretical minimum using future knowledge — the provably optimal lower bound.`,
+  };
+  let x='';if(k!=='opt'&&r[k].faults===r.opt.faults)x=`<br><br>🎯 <strong>Remarkable:</strong> ${k.toUpperCase()} matched OPT's optimal!`;
+  return e[k]+x;
+}
+
+/* ====================================================================
+   GRIDS
+   ==================================================================== */
+function renderGrids(){
+  const r=simResults,ref=r._ref,f=r._frames;
+  DOM.gridsContainer.innerHTML=ALGOS.map(a=>{
+    const d=r[a.key],hr=ref.length?((d.hits/ref.length)*100).toFixed(1):'0.0';
+    let h=`<div class="algo-grid-wrap"><div class="algo-grid-head">
+      <div class="algo-head-dot" style="background:${a.color}"></div>
+      <div class="algo-head-title" style="color:${a.color}">${a.name}</div>
+      <div class="algo-head-meta">Faults:${d.faults} · Hits:${d.hits} · Hit:${hr}%</div>
+    </div><div class="grid-scroll-wrap"><table class="step-table" id="grid-${a.key}"><thead><tr><th>Label</th>`;
+    for(let i=0;i<ref.length;i++)h+=`<th>${i+1}</th>`;
+    h+=`</tr></thead><tbody><tr><td>Page Ref</td>`;
+    for(let i=0;i<ref.length;i++)h+=`<td class="step-col-${i}">${ref[i]}</td>`;
+    h+=`</tr>`;
+    for(let fr=0;fr<f;fr++){
+      h+=`<tr><td>Frame ${fr}</td>`;
+      for(let i=0;i<ref.length;i++){
+        const s=d.trace[i],v=s.frames[fr];
+        if(v===undefined)h+=`<td class="cell-empty step-col-${i}">—</td>`;
+        else{const c=(s.isFault&&v===ref[i])?'cell-new':'';h+=`<td class="${c} step-col-${i}">${v}</td>`}
+      }h+=`</tr>`;
+    }
+    h+=`<tr><td>Result</td>`;
+    for(let i=0;i<ref.length;i++){const s=d.trace[i];h+=`<td class="${s.isFault?'cell-fault':'cell-hit'} step-col-${i}">${s.isFault?'F':'H'}</td>`}
+    h+=`</tr><tr><td>Evicted</td>`;
+    for(let i=0;i<ref.length;i++){const s=d.trace[i];h+=s.evicted!==null&&s.evicted!==undefined?`<td class="cell-evict step-col-${i}">${s.evicted}</td>`:`<td class="cell-empty step-col-${i}">—</td>`}
+    h+=`</tr></tbody></table></div></div>`;
+    return h;
+  }).join('');
+}
+
+/* ====================================================================
+   CHARTS
+   ==================================================================== */
+function getTC(){
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  return{text:d?'#a8a49c':'#3d3a36',grid:d?'rgba(255,255,255,.05)':'rgba(0,0,0,.06)',
+    tt:{bg:d?'#0e0e0e':'#fff',border:d?'#222':'#ddd',text:d?'#eae8e4':'#111'}};
+}
+function renderCharts(){
+  if(barChartInst)barChartInst.destroy();if(lineChartInst)lineChartInst.destroy();
+  const r=simResults,tc=getTC();
+  const cc=['--fifo','--lru','--lfu','--opt'].map(v=>gc(`var(${v})`));
+  const cb=cc.map(c=>c+'99');
+
+  barChartInst=new Chart(DOM.barChart,{type:'bar',
+    data:{labels:ALGOS.map(a=>a.name),datasets:[{label:'Page Faults',data:ALGOS.map(a=>r[a.key].faults),backgroundColor:cb,borderColor:cc,borderWidth:2,borderRadius:8,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:1200,easing:'easeOutBounce',delay:ctx=>ctx.dataIndex*200},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:tc.tt.bg,titleColor:tc.tt.text,bodyColor:tc.text,borderColor:tc.tt.border,borderWidth:1,padding:12,cornerRadius:8}},
+      scales:{x:{ticks:{color:tc.text,font:{family:'Sora',weight:'600'}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:tc.text,stepSize:1,font:{family:'JetBrains Mono'}},grid:{color:tc.grid}}}}
+  });
+
+  lineChartInst=new Chart(DOM.lineChart,{type:'line',
+    data:{labels:r._ref.map((_,i)=>i+1),datasets:ALGOS.map((a,i)=>({label:a.name,data:r[a.key].cumulativeFaults,borderColor:cc[i],backgroundColor:'transparent',borderWidth:2.5,pointRadius:r._ref.length>30?0:3,pointBackgroundColor:cc[i],tension:.35}))},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:1500,easing:'easeOutQuart'},interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:tc.text,font:{family:'Sora',weight:'600'},usePointStyle:true,pointStyle:'circle'}},tooltip:{backgroundColor:tc.tt.bg,titleColor:tc.tt.text,bodyColor:tc.text,borderColor:tc.tt.border,borderWidth:1,padding:12,cornerRadius:8}},
+      scales:{x:{ticks:{color:tc.text,font:{family:'JetBrains Mono',size:10}},grid:{color:tc.grid},title:{display:true,text:'Reference Step',color:tc.text}},y:{beginAtZero:true,ticks:{color:tc.text,stepSize:1,font:{family:'JetBrains Mono'}},grid:{color:tc.grid},title:{display:true,text:'Cumulative Faults',color:tc.text}}}}
+  });
+}
+
+/* ====================================================================
+   STEP-THROUGH — with cell pop + fault shake + hit glow
+   ==================================================================== */
+function enterStepMode(){if(!simResults)return;stepMode=true;currentStepIdx=0;DOM.stepControls.classList.remove('hidden');DOM.totalSteps.textContent=simResults._ref.length;updateStepDisplay()}
+function exitStepMode(){stepMode=false;stopAutoPlay();DOM.stepControls.classList.add('hidden');showAllCols()}
+
+function updateStepDisplay(){
+  DOM.currentStep.textContent=currentStepIdx;
+  const total=simResults._ref.length;
+  DOM.progressFill.style.width=total>0?`${(currentStepIdx/total)*100}%`:'0%';
+  for(let i=0;i<total;i++){
+    document.querySelectorAll(`.step-col-${i}`).forEach(c=>{
+      c.classList.remove('step-active','cell-pop','cell-fault-fx','cell-hit-fx');
+      c.style.opacity=i<currentStepIdx?'1':i===currentStepIdx?'0.25':'0.05';
+    });
+  }
+  if(currentStepIdx>0){
+    const pi=currentStepIdx-1;
+    document.querySelectorAll(`.step-col-${pi}`).forEach(c=>{
+      c.classList.add('step-active','cell-pop');
+      if(c.classList.contains('cell-fault'))c.classList.add('cell-fault-fx');
+      else if(c.classList.contains('cell-hit'))c.classList.add('cell-hit-fx');
+    });
+  }
+}
+function showAllCols(){if(!simResults)return;for(let i=0;i<simResults._ref.length;i++)document.querySelectorAll(`.step-col-${i}`).forEach(c=>{c.style.opacity='1';c.classList.remove('step-active','cell-pop','cell-fault-fx','cell-hit-fx')})}
+function stepForward(){if(!simResults||currentStepIdx>=simResults._ref.length)return;currentStepIdx++;updateStepDisplay()}
+function stepBackward(){if(!simResults||currentStepIdx<=0)return;currentStepIdx--;updateStepDisplay()}
+function startAutoPlay(){if(autoPlayInterval)return;DOM.btnAutoPlay.textContent='⏸ Pause';autoPlayInterval=setInterval(()=>{if(currentStepIdx>=simResults._ref.length){stopAutoPlay();return}stepForward()},450)}
+function stopAutoPlay(){if(autoPlayInterval){clearInterval(autoPlayInterval);autoPlayInterval=null}DOM.btnAutoPlay.textContent='⏩ Auto Play'}
+function toggleAutoPlay(){autoPlayInterval?stopAutoPlay():startAutoPlay()}
+
+/* ====================================================================
+   BELADY
+   ==================================================================== */
+function runBeladyDemo(){
+  const br=[1,2,3,4,1,2,5,1,2,3,4,5];
+  const r3=simulateFIFO(br,3),r4=simulateFIFO(br,4);
+  const an=r4.faults>r3.faults;
+  DOM.beladySection.classList.remove('hidden');
+  DOM.beladyResult.innerHTML=`
+    <div class="belady-box"><div class="belady-box-label">Reference String</div><div class="belady-box-val" style="font-size:.8rem;color:var(--text2)">${br.join(', ')}</div></div>
+    <div class="belady-box"><div class="belady-box-label">FIFO · 3 Frames</div><div class="belady-box-val" style="color:var(--lru)">${r3.faults}</div></div>
+    <div class="belady-box"><div class="belady-box-label">FIFO · 4 Frames</div><div class="belady-box-val" style="color:${an?'var(--fault)':'var(--hit)'}">${r4.faults}</div></div>`;
+  DOM.beladyVerdict.className='belady-verdict '+(an?'anomaly':'no-anomaly');
+  DOM.beladyVerdict.innerHTML=an
+    ?`⚠️ <strong>Belady's Anomaly CONFIRMED!</strong> 4 frames → ${r4.faults} faults vs 3 frames → ${r3.faults} faults. More memory caused WORSE performance!`
+    :`✅ No anomaly. 4 frames (${r4.faults}) ≤ 3 frames (${r3.faults}).`;
+  DOM.beladySection.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* ====================================================================
+   EXPORT
+   ==================================================================== */
+function exportPNG(){
+  if(!simResults)return;DOM.btnExportPng.textContent='⏳…';DOM.btnExportPng.disabled=true;
+  html2canvas(DOM.results,{backgroundColor:document.documentElement.getAttribute('data-theme')==='dark'?'#050505':'#f5f4f1',scale:2,logging:false,useCORS:true})
+    .then(c=>{const a=document.createElement('a');a.download='page_replacement.png';a.href=c.toDataURL('image/png');a.click()})
+    .finally(()=>{DOM.btnExportPng.textContent='📷 PNG';DOM.btnExportPng.disabled=false});
+}
+function exportCSV(){
+  if(!simResults)return;const r=simResults,ref=r._ref;
+  let c=`Page Replacement Algorithm Comparison\nFrames:${r._frames}\nReference:${ref.join(' ')}\n\nAlgorithm,Faults,Hits,Hit%,Fault%,Penalty\n`;
+  for(const a of ALGOS){const d=r[a.key];c+=`${a.name},${d.faults},${d.hits},${((d.hits/ref.length)*100).toFixed(1)},${((d.faults/ref.length)*100).toFixed(1)},${d.faults*10}ms\n`}
+  c+='\n--- Traces ---\n';
+  for(const a of ALGOS){c+=`\n${a.name}:\nStep,Page,Frames,Result,Evicted\n`;r[a.key].trace.forEach((t,s)=>{c+=`${s+1},${t.page},"[${t.frames.join(',')}]",${t.isFault?'FAULT':'HIT'},${t.evicted!==null?t.evicted:'-'}\n`})}
+  const b=new Blob([c],{type:'text/csv'});const a=document.createElement('a');a.download='page_replacement.csv';a.href=URL.createObjectURL(b);a.click();
+}
+
+function toggleAccordion(h){h.closest('.accordion-item').classList.toggle('open')}
+
+/* ====================================================================
+   EVENT LISTENERS
+   ==================================================================== */
+DOM.frameSlider.addEventListener('input',()=>{
+  DOM.frameValue.textContent=DOM.frameSlider.value;
+  DOM.frameValue.classList.remove('bump');void DOM.frameValue.offsetWidth;DOM.frameValue.classList.add('bump');
+});
+DOM.btnRun.addEventListener('click',runSimulation);
+DOM.btnRandom.addEventListener('click',()=>{DOM.refString.value=generateRandom(15,7).join(' ');clearError()});
+DOM.btnClear.addEventListener('click',()=>{
+  DOM.refString.value='';DOM.frameSlider.value=3;DOM.frameValue.textContent='3';
+  DOM.presetSelect.value='';clearError();DOM.results.classList.add('hidden');
+  DOM.btnStepMode.classList.add('hidden');DOM.btnBelady.classList.add('hidden');
+  DOM.beladySection.classList.add('hidden');simResults=null;stopAutoPlay();
+  DOM.stickyStrip.classList.remove('visible');
+});
+DOM.presetSelect.addEventListener('change',()=>{
+  const k=DOM.presetSelect.value;if(!k)return;
+  const p=PRESETS[k];DOM.refString.value=k==='random20'?generateRandom(20,7).join(' '):p.ref;
+  DOM.frameSlider.value=p.frames;DOM.frameValue.textContent=p.frames;clearError();
+});
+DOM.btnStepMode.addEventListener('click',()=>{
+  if(stepMode){exitStepMode();DOM.btnStepMode.textContent='🦶 Step-Through'}
+  else{enterStepMode();DOM.btnStepMode.textContent='📊 Show All'}
+});
+DOM.btnNext.addEventListener('click',stepForward);
+DOM.btnPrev.addEventListener('click',stepBackward);
+DOM.btnAutoPlay.addEventListener('click',toggleAutoPlay);
+DOM.btnResetSteps.addEventListener('click',()=>{currentStepIdx=0;stopAutoPlay();updateStepDisplay()});
+DOM.btnBelady.addEventListener('click',runBeladyDemo);
+DOM.btnExportPng.addEventListener('click',exportPNG);
+DOM.btnExportCsv.addEventListener('click',exportCSV);
+document.getElementById('stickyRun').addEventListener('click',runSimulation);
+document.getElementById('stickyStep').addEventListener('click',()=>DOM.btnStepMode.click());
+document.getElementById('stickyBelady').addEventListener('click',runBeladyDemo);
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.activeElement===DOM.refString)runSimulation();
+  if(stepMode){if(e.key==='ArrowRight'){e.preventDefault();stepForward()}if(e.key==='ArrowLeft'){e.preventDefault();stepBackward()}if(e.key===' '){e.preventDefault();toggleAutoPlay()}}
+});
+
+themeToggle.addEventListener('click',()=>{if(simResults)setTimeout(renderCharts,150)});
+
+DOM.refString.value='7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1';
+DOM.frameSlider.value=3;DOM.frameValue.textContent='3';
+</script>
+</body>
+</html>
