@@ -11,9 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-/* ==========================================================================
-   DESIGN TOKENS
-   ========================================================================== */
+
 :root {
   --bg:            #f5f4f1;
   --bg2:           #ffffff;
@@ -47,14 +45,14 @@
   --r-sm:          8px;
   --r-lg:          20px;
   --r-xl:          28px;
-  /* Particle theming for light: dark bluish particles for contrast */
+  
   --p-color:       30,40,80;
   --p-opacity:     0.55;
   --p-line-opacity:0.12;
   --p-shape-opacity:0.14;
 }
 
-/* ── TRUE BLACK DARK THEME ── */
+
 [data-theme="dark"] {
   --bg:            #050505;
   --bg2:           #0a0a0a;
@@ -90,9 +88,7 @@
   --p-shape-opacity:0.08;
 }
 
-/* ==========================================================================
-   RESET
-   ========================================================================== */
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:15px}
 body{
@@ -105,12 +101,10 @@ body{
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* ==========================================================================
-   THREE.JS CANVAS
-   ========================================================================== */
+
 #three-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-/* Grain */
+
 body::before{
   content:'';position:fixed;inset:0;z-index:1;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
@@ -118,12 +112,10 @@ body::before{
 }
 main{position:relative;z-index:2}
 
-/* ==========================================================================
-   HERO
-   ========================================================================== */
+
 .hero{position:relative;padding:5rem 2rem 4rem;text-align:center;overflow:hidden}
 
-/* 3D wireframe rings */
+
 .hero-ring{
   position:absolute;top:50%;left:50%;
   width:360px;height:360px;
@@ -175,7 +167,7 @@ main{position:relative;z-index:2}
   animation:fadeDown .6s .2s ease both;
 }
 
-/* Floating pills */
+
 .algo-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:1rem;animation:fadeDown .6s .3s ease both}
 .pill{
   display:flex;align-items:center;gap:6px;padding:6px 14px;
@@ -197,9 +189,7 @@ main{position:relative;z-index:2}
 .pill-opt{color:var(--opt);border-color:var(--opt);background:color-mix(in srgb,var(--opt) 8%,transparent)}
 .pill-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
 
-/* ==========================================================================
-   THEME TOGGLE
-   ========================================================================== */
+
 .theme-toggle{
   position:fixed;top:20px;right:20px;z-index:1000;
   width:52px;height:28px;
@@ -219,14 +209,10 @@ main{position:relative;z-index:2}
 }
 [data-theme="dark"] .toggle-knob{transform:translateX(24px)}
 
-/* ==========================================================================
-   LAYOUT
-   ========================================================================== */
+
 .container{max-width:1100px;margin:0 auto;padding:0 1.5rem}
 
-/* ==========================================================================
-   CONTROL PANEL
-   ========================================================================== */
+
 .control-panel{
   background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
   border:1.5px solid var(--glass-border);border-radius:var(--r-xl);
@@ -257,9 +243,9 @@ main{position:relative;z-index:2}
 .frame-val.bump{animation:valBump .4s cubic-bezier(.34,1.56,.64,1)}
 @keyframes valBump{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
 
-input[type=range]{-webkit-appearance:none;flex:1;height:6px;background:var(--bg3);border-radius:3px;outline:none;cursor:pointer}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:6px;background:var(--bg3);border-radius:3px;outline:none;cursor:pointer}
 input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  -webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
   background:var(--accent);box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 40%,transparent);
   cursor:pointer;transition:transform .4s cubic-bezier(.34,1.56,.64,1);
 }
@@ -282,9 +268,7 @@ select.input-field{cursor:pointer}
 
 .btn-row{display:flex;flex-wrap:wrap;gap:10px}
 
-/* ==========================================================================
-   BUTTONS — Pop + Ripple + Spring bounce
-   ========================================================================== */
+
 .btn{
   position:relative;overflow:hidden;
   display:inline-flex;align-items:center;gap:7px;
@@ -294,20 +278,20 @@ select.input-field{cursor:pointer}
   outline:none;white-space:nowrap;
   transition:transform .45s cubic-bezier(.34,1.56,.64,1),
              box-shadow .3s ease,background .3s,border-color .3s,color .3s;
-  /* GPU layer */
+  
   will-change:transform;
 }
 .btn:hover{transform:translateY(-4px) scale(1.04)}
 .btn:active{transform:scale(.93)!important;transition-duration:.1s}
 
-/* Pop-up entrance for buttons becoming visible */
+
 .btn-pop{animation:btnPopIn .5s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes btnPopIn{
   from{opacity:0;transform:scale(.5) translateY(20px)}
   to{opacity:1;transform:scale(1) translateY(0)}
 }
 
-/* Ripple */
+
 .btn .ripple{
   position:absolute;border-radius:50%;
   background:rgba(255,255,255,.35);
@@ -333,9 +317,7 @@ select.input-field{cursor:pointer}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
 .btn.hidden{display:none}
 
-/* ==========================================================================
-   SCROLL-DRIVEN REVEALS — pop-in with spring physics
-   ========================================================================== */
+
 .reveal{opacity:0;transform:translateY(50px) scale(.96);transition:opacity .7s,transform .7s cubic-bezier(.22,1,.36,1)}
 .reveal.revealed{opacity:1;transform:translateY(0) scale(1)}
 
@@ -344,16 +326,14 @@ select.input-field{cursor:pointer}
 .reveal-right{opacity:0;transform:translateX(60px) scale(.96);transition:opacity .7s,transform .7s cubic-bezier(.22,1,.36,1)}
 .reveal-right.revealed{opacity:1;transform:translateX(0) scale(1)}
 
-/* Heading wipe */
+
 .text-reveal{clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.22,1,.36,1)}
 .text-reveal.revealed{clip-path:inset(0 0 0 0)}
 
-/* Parallax scroll-driven section shift */
+
 .parallax-section{will-change:transform;transition:transform .1s linear}
 
-/* ==========================================================================
-   RESULTS
-   ========================================================================== */
+
 #results.hidden{display:none}
 #results{animation:popUp .5s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes popUp{from{opacity:0;transform:scale(.92) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
@@ -361,9 +341,7 @@ select.input-field{cursor:pointer}
 .section-heading{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--text);margin-bottom:.4rem}
 .section-sub{font-size:.88rem;color:var(--text3);margin-bottom:1.5rem}
 
-/* ==========================================================================
-   WINNER CARD
-   ========================================================================== */
+
 .winner-card{
   position:relative;overflow:hidden;
   background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 50%,var(--fifo)));
@@ -389,9 +367,7 @@ select.input-field{cursor:pointer}
 
 #confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:9999}
 
-/* ==========================================================================
-   STAT CARDS — 3D tilt + glassmorphism + shimmer + pop entrance
-   ========================================================================== */
+
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:2rem}
 
 .stat-card{
@@ -402,7 +378,7 @@ select.input-field{cursor:pointer}
   transition:transform .12s,box-shadow .2s;
   transform-style:preserve-3d;
 }
-/* Specular highlight */
+
 .stat-card .specular{
   position:absolute;width:220px;height:220px;border-radius:50%;
   background:radial-gradient(circle,var(--specular) 0%,transparent 70%);
@@ -411,7 +387,7 @@ select.input-field{cursor:pointer}
 }
 .stat-card:hover .specular{opacity:1}
 
-/* Shimmer sweep */
+
 .stat-card::after{
   content:'';position:absolute;inset:0;
   background:linear-gradient(105deg,transparent 40%,var(--shimmer) 50%,transparent 60%);
@@ -430,7 +406,7 @@ select.input-field{cursor:pointer}
 }
 @keyframes badgePop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
 
-/* Pop-in for each stat card */
+
 .stat-card-pop{animation:cardPop .55s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes cardPop{
   from{opacity:0;transform:scale(.6) translateY(30px) rotateX(-8deg)}
@@ -454,9 +430,7 @@ select.input-field{cursor:pointer}
 .stat-row-val{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:.82rem}
 .val-hit{color:var(--hit)}.val-fault{color:var(--fault)}.val-cyan{color:var(--lru)}.val-amber{color:var(--lfu)}
 
-/* ==========================================================================
-   STEP CONTROLS
-   ========================================================================== */
+
 .step-controls-bar{
   background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--glass-border);border-radius:var(--r-lg);
@@ -469,9 +443,7 @@ select.input-field{cursor:pointer}
 .step-progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .step-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--opt));transition:width .25s ease;width:0}
 
-/* ==========================================================================
-   STEP GRIDS — popping cells, flip animations, pulse/shake
-   ========================================================================== */
+
 .grids-section{margin-bottom:2rem}
 .grids-container{display:flex;flex-direction:column;gap:1.5rem}
 
@@ -511,14 +483,14 @@ select.input-field{cursor:pointer}
 .cell-evict{background:color-mix(in srgb,var(--lfu) 10%,transparent)!important;color:var(--lfu)}
 .step-active{background:color-mix(in srgb,var(--accent) 8%,transparent)!important;outline:2px solid var(--accent);outline-offset:-2px}
 
-/* Cell pop-in (3D flip + scale pop) */
+
 .cell-pop{animation:cellPopIn .4s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes cellPopIn{
   from{transform:perspective(400px) rotateY(90deg) scale(.5);opacity:0}
   to{transform:perspective(400px) rotateY(0) scale(1);opacity:1}
 }
 
-/* Fault: red shake + pulse */
+
 .cell-fault-fx{animation:faultShake .5s ease both}
 @keyframes faultShake{
   0%{transform:translateX(0);box-shadow:inset 0 0 0 0 var(--fault-bg)}
@@ -529,7 +501,7 @@ select.input-field{cursor:pointer}
   100%{transform:translateX(0);box-shadow:inset 0 0 0 0 transparent}
 }
 
-/* Hit: green ripple glow */
+
 .cell-hit-fx{animation:hitGlow .5s ease both}
 @keyframes hitGlow{
   0%{box-shadow:inset 0 0 0 0 var(--hit);transform:scale(1)}
@@ -537,9 +509,7 @@ select.input-field{cursor:pointer}
   100%{box-shadow:inset 0 0 0 0 transparent;transform:scale(1)}
 }
 
-/* ==========================================================================
-   CHARTS
-   ========================================================================== */
+
 .charts-section{margin-bottom:2rem}
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
 @media(max-width:700px){.charts-grid{grid-template-columns:1fr}}
@@ -561,9 +531,7 @@ select.input-field{cursor:pointer}
 .chart-title{font-size:.85rem;font-weight:700;color:var(--text2);margin-bottom:1rem;position:relative;z-index:3}
 .chart-wrap{position:relative;height:220px;z-index:3}
 
-/* ==========================================================================
-   EXPORT + BELADY
-   ========================================================================== */
+
 .export-card{
   background:var(--surface-glass);backdrop-filter:blur(var(--glass-blur));
   border:1.5px solid var(--glass-border);border-radius:var(--r-lg);padding:1.5rem;
@@ -590,9 +558,7 @@ select.input-field{cursor:pointer}
 .belady-verdict.anomaly{background:var(--fault-bg);color:var(--fault);border:1px solid color-mix(in srgb,var(--fault) 25%,transparent)}
 .belady-verdict.no-anomaly{background:var(--hit-bg);color:var(--hit);border:1px solid color-mix(in srgb,var(--hit) 25%,transparent)}
 
-/* ==========================================================================
-   ACCORDION
-   ========================================================================== */
+
 .theory-section{margin-bottom:2rem}
 .accordion{display:flex;flex-direction:column;gap:8px}
 .accordion-item{
@@ -620,13 +586,11 @@ select.input-field{cursor:pointer}
 .acc-meta-key{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700}
 .acc-meta-val{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent);font-weight:600}
 
-/* ==========================================================================
-   FOOTER
-   ========================================================================== */
+
 footer{text-align:center;padding:2.5rem 1rem 3rem;font-size:.75rem;color:var(--text3);line-height:2;border-top:1px solid var(--border);margin-top:2rem;position:relative;z-index:2}
 footer a{color:var(--accent);text-decoration:none;font-weight:600}
 
-/* Sticky strip */
+
 .sticky-strip{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
   background:var(--surface-glass);backdrop-filter:blur(20px);
@@ -638,7 +602,7 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
 @keyframes stripPop{from{opacity:0;transform:translateX(-50%) translateY(30px) scale(.8)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .sticky-strip .btn{border-radius:100px;padding:8px 16px;font-size:.8rem}
 
-/* Tooltip */
+
 .tooltip-wrap{position:relative;display:inline-block}
 .tooltip-text{
   visibility:hidden;opacity:0;position:absolute;bottom:calc(100% + 8px);left:50%;
@@ -652,11 +616,9 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
 .mb-2{margin-bottom:2rem}
 .tilt-card{transform-style:preserve-3d;will-change:transform}
 
-/* ==========================================================================
-   WORLD-CLASS SCROLL EFFECTS
-   ========================================================================== */
 
-/* ── Scroll Progress Bar ── */
+
+
 .scroll-progress{
   position:fixed;top:0;left:0;height:3px;z-index:2000;
   background:linear-gradient(90deg,var(--fifo),var(--lru),var(--opt),var(--lfu));
@@ -665,7 +627,7 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
              0 0 30px color-mix(in srgb,var(--accent) 20%,transparent);
 }
 
-/* ── Cursor Glow Trail ── */
+
 .cursor-glow{
   position:fixed;width:350px;height:350px;
   border-radius:50%;pointer-events:none;z-index:1;
@@ -679,10 +641,10 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
   background:radial-gradient(circle,rgba(59,130,246,.06) 0%,transparent 70%);
 }
 
-/* ── Hero Parallax Zoom-Out on scroll ── */
+
 .hero{transition:none;will-change:transform,opacity,filter}
 
-/* ── Scroll-Down Indicator ── */
+
 .scroll-hint{
   position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
   display:flex;flex-direction:column;align-items:center;gap:6px;
@@ -703,7 +665,7 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
   50%{transform:rotate(45deg) translate(5px,5px);opacity:1}
 }
 
-/* ── SVG Wave Section Dividers ── */
+
 .wave-divider{
   position:relative;width:100%;overflow:hidden;line-height:0;
   margin:-1px 0;
@@ -718,16 +680,16 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
 }
 .wave-divider.flip{transform:scaleY(-1)}
 
-/* ── Velocity-Driven Motion Blur ── */
+
 .velocity-blur{transition:filter .2s ease-out;will-change:filter}
 
-/* ── Scroll-Linked Section Tilt Entrance ── */
+
 .scroll-tilt{
   will-change:transform,opacity;
   transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .5s ease;
 }
 
-/* ── Stagger Cascade for children ── */
+
 .cascade-children>*{
   opacity:0;transform:translateY(25px) scale(.97);
   transition:opacity .5s ease,transform .5s cubic-bezier(.22,1,.36,1);
@@ -744,11 +706,11 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
   opacity:1;transform:translateY(0) scale(1);
 }
 
-/* ── Parallax Speed Layers ── */
+
 .parallax-slow{will-change:transform}
 .parallax-fast{will-change:transform}
 
-/* ── Section Border Glow on scroll ── */
+
 .scroll-glow-border{
   position:relative;
 }
@@ -760,6 +722,48 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
 }
 .scroll-glow-border.glowing::before{opacity:.3}
 [data-theme="dark"] .scroll-glow-border.glowing::before{opacity:.15}
+
+
+.terminal-section{margin-bottom:2rem}
+.terminal-toggle-row{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.terminal-window{
+  background:#0d1117;border:1.5px solid #21262d;border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:var(--shadow-lg);
+  max-height:520px;display:flex;flex-direction:column;
+}
+.terminal-header{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 16px;background:#161b22;border-bottom:1px solid #21262d;
+  user-select:none;flex-shrink:0;
+}
+.terminal-dot{width:12px;height:12px;border-radius:50%}
+.terminal-dot.red{background:#ff5f57}
+.terminal-dot.yellow{background:#febc2e}
+.terminal-dot.green{background:#28c840}
+.terminal-title{
+  flex:1;text-align:center;font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;color:#8b949e;letter-spacing:.04em;
+}
+.terminal-body{
+  padding:16px 20px;overflow-y:auto;overflow-x:hidden;
+  max-height:460px;font-family:'JetBrains Mono',monospace;
+  font-size:.76rem;line-height:1.85;color:#c9d1d9;
+  scrollbar-width:thin;scrollbar-color:#30363d #0d1117;
+}
+.terminal-body::-webkit-scrollbar{width:6px}
+.terminal-body::-webkit-scrollbar-track{background:#0d1117}
+.terminal-body::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+.log-line{white-space:pre-wrap;word-break:break-all}
+.log-prompt{color:#7ee787}
+.log-info{color:#58a6ff}
+.log-fault{color:#f85149}
+.log-hit{color:#3fb950}
+.log-dim{color:#484f58}
+.log-warn{color:#d29922}
+.log-accent{color:#bc8cff}
+.log-bold{font-weight:700}
+.log-separator{color:#30363d}
+.terminal-section.collapsed .terminal-window{display:none}
 
 </style>
 </head>
@@ -893,6 +897,24 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
     <button class="btn btn-outline" id="btnExportCsv">📄 CSV</button>
   </div>
 
+  <div class="terminal-section collapsed reveal" id="terminalSection">
+    <div class="section-heading text-reveal">💻 Execution Logs</div>
+    <p class="section-sub">Real-time algorithm trace output — step-by-step frame operations.</p>
+    <div class="terminal-toggle-row">
+      <button class="btn btn-outline" id="btnToggleLogs">▶ Show Terminal Logs</button>
+      <span style="font-size:.78rem;color:var(--text3)">Detailed execution trace for all 4 algorithms</span>
+    </div>
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">os_simulator@ubuntu:~/page-replacement</div>
+      </div>
+      <div class="terminal-body" id="terminalBody"></div>
+    </div>
+  </div>
+
   <div class="belady-card hidden" id="beladySection">
     <div class="belady-title">⚠️ Belady's Anomaly Demonstration</div>
     <div class="belady-desc">With FIFO, increasing the number of frames can paradoxically <strong>increase</strong> page faults — a counter-intuitive property unique to non-stack algorithms.</div>
@@ -1000,9 +1022,7 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
 <script>
 'use strict';
 
-/* ====================================================================
-   THREE.JS — Stronger particles, theme-adaptive colors, mouse reactive
-   ==================================================================== */
+
 (function(){
   const canvas=document.getElementById('three-bg');
   const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
@@ -1018,8 +1038,6 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
     mouse.tx=(e.clientX/window.innerWidth-0.5)*2;
     mouse.ty=(e.clientY/window.innerHeight-0.5)*2;
   });
-
-  // --- Particles ---
   const N=150;
   const pos=new Float32Array(N*3);
   const vel=[];
@@ -1034,8 +1052,6 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
   const pMat=new THREE.PointsMaterial({size:.18,transparent:true,sizeAttenuation:true});
   const pts=new THREE.Points(pGeo,pMat);
   scene.add(pts);
-
-  // --- Lines ---
   const maxL=N*6;
   const lPos=new Float32Array(maxL*6);
   const lGeo=new THREE.BufferGeometry();
@@ -1043,8 +1059,6 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
   const lMat=new THREE.LineBasicMaterial({transparent:true});
   const lines=new THREE.LineSegments(lGeo,lMat);
   scene.add(lines);
-
-  // --- Shapes ---
   const shapes=[];
   const geos=[
     new THREE.IcosahedronGeometry(1.3,0),
@@ -1064,8 +1078,6 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
     };
     scene.add(mesh);shapes.push(mesh);
   }
-
-  // --- Color sync ---
   function syncColors(){
     const cs=getComputedStyle(document.documentElement);
     const pc=cs.getPropertyValue('--p-color').trim();
@@ -1136,9 +1148,7 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
   });
 })();
 
-/* ====================================================================
-   CONFETTI
-   ==================================================================== */
+
 const cCanvas=document.getElementById('confettiCanvas');
 const cCtx=cCanvas.getContext('2d');
 let confetti=[],cAnim=null;
@@ -1177,9 +1187,7 @@ function drawConfetti(){
   if(alive)cAnim=requestAnimationFrame(drawConfetti);
 }
 
-/* ====================================================================
-   THEME TOGGLE
-   ==================================================================== */
+
 const themeToggle=document.getElementById('themeToggle');
 const toggleKnob=document.getElementById('toggleKnob');
 function setTheme(d){
@@ -1192,9 +1200,7 @@ themeToggle.addEventListener('click',()=>{
   setTheme(document.documentElement.getAttribute('data-theme')==='light');
 });
 
-/* ====================================================================
-   SCROLL REVEALS — IntersectionObserver with staggered pop
-   ==================================================================== */
+
 const revObs=new IntersectionObserver((entries)=>{
   entries.forEach((e,i)=>{
     if(e.isIntersecting){
@@ -1208,17 +1214,13 @@ function observeAll(){
 }
 observeAll();
 
-/* ====================================================================
-   GOD-TIER SCROLL ENGINE — single rAF loop driving all scroll effects
-   ==================================================================== */
+
 const scrollState={y:0,prevY:0,velocity:0,rafId:null,ticking:false};
 const scrollProgress=document.getElementById('scrollProgress');
 const cursorGlow=document.getElementById('cursorGlow');
 const scrollHint=document.getElementById('scrollHint');
 const heroEl=document.querySelector('.hero');
 let mouseX=0,mouseY=0;
-
-// Mouse tracking for cursor glow
 document.addEventListener('mousemove',e=>{
   mouseX=e.clientX;mouseY=e.clientY;
   cursorGlow.style.left=mouseX+'px';
@@ -1238,11 +1240,11 @@ function scrollLoop(){
   const vh=window.innerHeight;
   const docH=document.documentElement.scrollHeight-vh;
 
-  // ─── 1. Scroll Progress Bar ───
+  
   const pct=docH>0?(sy/docH)*100:0;
   scrollProgress.style.width=pct+'%';
 
-  // ─── 2. Hero Parallax Zoom-Out + Fade ───
+  
   if(heroEl){
     const heroH=heroEl.offsetHeight;
     const heroProgress=Math.min(sy/heroH,1);
@@ -1255,13 +1257,13 @@ function scrollLoop(){
     heroEl.style.filter=blur>0.5?`blur(${blur}px)`:'';
   }
 
-  // ─── 3. Scroll-Down Hint — fade away ───
+  
   if(scrollHint){
     scrollHint.style.opacity=Math.max(0,1-sy/150);
     scrollHint.style.transform=`translateX(-50%) translateY(${sy*0.3}px)`;
   }
 
-  // ─── 4. Velocity-Based Motion Blur ───
+  
   scrollState.velocity=Math.abs(sy-scrollState.prevY);
   scrollState.prevY=sy;
   const blurAmt=Math.min(scrollState.velocity*0.15,4);
@@ -1269,23 +1271,21 @@ function scrollLoop(){
     el.style.filter=blurAmt>0.3?`blur(${blurAmt}px)`:'';
   });
 
-  // ─── 5. Parallax sections — real-time shift ───
+  
   document.querySelectorAll('.parallax-section').forEach(el=>{
     const rect=el.getBoundingClientRect();
     const center=rect.top+rect.height/2;
     const vCenter=vh/2;
     const offset=(center-vCenter)*0.04;
-    // Preserve existing tilt transforms
     const existingTransform=el.style.transform||'';
     if(!existingTransform.includes('rotateX'))
       el.style.transform=`translateY(${offset}px)`;
   });
 
-  // ─── 6. Scroll-Linked Section Tilt ───
+  
   document.querySelectorAll('.scroll-tilt').forEach(el=>{
     const rect=el.getBoundingClientRect();
     const progress=(rect.top)/(vh);
-    // Tilt from 2deg to 0 as element enters viewport
     const tilt=Math.max(0,Math.min(2,progress*2.5));
     const scale=Math.max(0.96,1-Math.max(0,progress)*0.04);
     if(rect.top<vh&&rect.bottom>0){
@@ -1294,7 +1294,7 @@ function scrollLoop(){
     }
   });
 
-  // ─── 7. Cascade Children Stagger Trigger ───
+  
   document.querySelectorAll('.cascade-children:not(.cascaded)').forEach(el=>{
     const rect=el.getBoundingClientRect();
     if(rect.top<vh*0.85){
@@ -1302,7 +1302,7 @@ function scrollLoop(){
     }
   });
 
-  // ─── 8. Scroll-Glow Border Activation ───
+  
   document.querySelectorAll('.scroll-glow-border').forEach(el=>{
     const rect=el.getBoundingClientRect();
     const inView=rect.top<vh*0.75&&rect.bottom>vh*0.15;
@@ -1311,19 +1311,15 @@ function scrollLoop(){
 }
 
 window.addEventListener('scroll',onScrollTick,{passive:true});
-// Run once on load
 requestAnimationFrame(scrollLoop);
 
-/* ====================================================================
-   3D TILT — cards follow cursor with specular highlight
-   ==================================================================== */
+
 function initTilt(el){
   el.addEventListener('mousemove',e=>{
     const r=el.getBoundingClientRect();
     const dx=(e.clientX-r.left-r.width/2)/r.width*16;
     const dy=(e.clientY-r.top-r.height/2)/r.height*16;
     el.style.transform=`perspective(800px) rotateY(${dx}deg) rotateX(${-dy}deg) scale(1.03)`;
-    // Move specular
     const spec=el.querySelector('.specular');
     if(spec){spec.style.left=(e.clientX-r.left)+'px';spec.style.top=(e.clientY-r.top)+'px'}
   });
@@ -1331,9 +1327,7 @@ function initTilt(el){
 }
 document.querySelectorAll('.tilt-card').forEach(initTilt);
 
-/* ====================================================================
-   MAGNETIC BUTTON
-   ==================================================================== */
+
 document.querySelectorAll('.magnetic-btn').forEach(btn=>{
   btn.addEventListener('mousemove',e=>{
     const r=btn.getBoundingClientRect();
@@ -1348,9 +1342,7 @@ document.querySelectorAll('.magnetic-btn').forEach(btn=>{
   btn.addEventListener('mouseleave',()=>{btn.style.transform=''});
 });
 
-/* ====================================================================
-   RIPPLE on all buttons
-   ==================================================================== */
+
 document.addEventListener('click',e=>{
   const btn=e.target.closest('.btn');
   if(!btn)return;
@@ -1364,9 +1356,7 @@ document.addEventListener('click',e=>{
   rip.addEventListener('animationend',()=>rip.remove());
 });
 
-/* ====================================================================
-   DOM
-   ==================================================================== */
+
 const DOM={
   frameSlider:document.getElementById('frameSlider'),
   frameValue:document.getElementById('frameValue'),
@@ -1400,9 +1390,12 @@ const DOM={
   beladyResult:document.getElementById('beladyResult'),
   beladyVerdict:document.getElementById('beladyVerdict'),
   stickyStrip:document.getElementById('stickyStrip'),
+  terminalSection:document.getElementById('terminalSection'),
+  btnToggleLogs:document.getElementById('btnToggleLogs'),
+  terminalBody:document.getElementById('terminalBody'),
 };
 
-/* ==================================================================== */
+
 const PRESETS={
   locality:{ref:'1 2 3 2 1 2 3 4 3 2 1 2',frames:3},
   thrashing:{ref:'1 2 3 4 5 1 2 3 4 5 1 2 3 4 5',frames:3},
@@ -1420,7 +1413,7 @@ function generateRandom(l=20,m=9){return Array.from({length:l},()=>Math.floor(Ma
 function showError(m){DOM.refError.querySelector('span:last-child').textContent=m;DOM.refError.classList.add('visible')}
 function clearError(){DOM.refError.classList.remove('visible')}
 
-/* Elastic counter */
+
 function animateCount(el,target,dur=900){
   const start=performance.now();
   const update=(now)=>{
@@ -1435,19 +1428,22 @@ function animateCount(el,target,dur=900){
 
 function typeWriter(el,text,speed=30){el.textContent='';let i=0;(function t(){if(i<text.length){el.textContent+=text.charAt(i);i++;setTimeout(t,speed)}}())}
 
-/* ====================================================================
-   ALGORITHMS — 100% preserved
-   ==================================================================== */
-function simulateFIFO(r,f){const m=[];let p=0,fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{ev=m[p];m[p]=pg;p=(p+1)%f}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
+
+// fifo logic
+function simulateFIFO(r,f){
+  console.log("fifo chalu hua", f);
+  const m=[];let p=0,fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{ev=m[p];m[p]=pg;p=(p+1)%f}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}
+  console.log("fifo faults check:", fa);
+  return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}
+}
 function simulateLRU(r,f){const m=[],lu={};let fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;lu[pg]=i;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{let lp=m[0],lt=lu[m[0]];for(let j=1;j<m.length;j++)if(lu[m[j]]<lt){lt=lu[m[j]];lp=m[j]}ev=lp;m[m.indexOf(lp)]=pg}lu[pg]=i;t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
 function simulateLFU(r,f){const m=[],fr={},lo={};let fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;fr[pg]++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f){m.push(pg);fr[pg]=1;lo[pg]=i}else{let lp=m[0],lf=fr[m[0]],ll=lo[m[0]];for(let j=1;j<m.length;j++){const p=m[j];if(fr[p]<lf||(fr[p]===lf&&lo[p]<ll)){lp=p;lf=fr[p];ll=lo[p]}}ev=lp;delete fr[lp];delete lo[lp];m[m.indexOf(lp)]=pg;fr[pg]=1;lo[pg]=i}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
 function simulateOPT(r,f){const m=[];let fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{let far=-1,vi=0;for(let j=0;j<m.length;j++){let nu=-1;for(let k=i+1;k<r.length;k++)if(r[k]===m[j]){nu=k;break}if(nu===-1){vi=j;break}if(nu>far){far=nu;vi=j}}ev=m[vi];m[vi]=pg}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}return{faults:fa,hits:h,trace:t,cumulativeFaults:bldCum(t)}}
 function bldCum(t){let c=0;return t.map(s=>{if(s.isFault)c++;return c})}
 
-/* ====================================================================
-   SIMULATION RUNNER
-   ==================================================================== */
+
 function runSimulation(){
+  console.log("running sim now...");
   clearError();stopAutoPlay();
   const f=parseInt(DOM.frameSlider.value,10);
   const ref=parseRefString(DOM.refString.value);
@@ -1457,9 +1453,7 @@ function runSimulation(){
   renderResults();
 }
 
-/* ====================================================================
-   RENDERING
-   ==================================================================== */
+
 const ALGOS=[{key:'fifo',name:'FIFO',color:'var(--fifo)'},{key:'lru',name:'LRU',color:'var(--lru)'},{key:'lfu',name:'LFU',color:'var(--lfu)'},{key:'opt',name:'OPT',color:'var(--opt)'}];
 function gc(v){return getComputedStyle(document.documentElement).getPropertyValue(v.replace('var(','').replace(')','').trim()).trim()}
 
@@ -1472,8 +1466,6 @@ function renderResults(){
 
   let bk='opt',bf=Infinity;
   for(const a of ALGOS)if(r[a.key].faults<bf){bf=r[a.key].faults;bk=a.key}
-
-  // Stats with staggered pop
   DOM.statsGrid.innerHTML=ALGOS.map((a,i)=>{
     const d=r[a.key],best=a.key===bk;
     const hr=rl?((d.hits/rl)*100).toFixed(1):'0.0';
@@ -1493,8 +1485,6 @@ function renderResults(){
         </div>
       </div>`;
   }).join('');
-
-  // Count-up on scroll
   const cObs=new IntersectionObserver(es=>{
     es.forEach(e=>{if(e.isIntersecting){animateCount(e.target,parseInt(e.target.dataset.target,10),900);cObs.unobserve(e.target)}});
   },{threshold:.5});
@@ -1502,19 +1492,14 @@ function renderResults(){
 
   document.querySelectorAll('.stat-card').forEach(initTilt);
   observeAll();
-
-  // Winner
   const ba=ALGOS.find(a=>a.key===bk);
   DOM.winnerCard.classList.remove('hidden');
   typeWriter(DOM.winnerName,`${ba.name} wins — only ${bf} page fault${bf!==1?'s':''}!`,30);
   DOM.winnerExplan.innerHTML=getWinExp(bk,r);
   setTimeout(launchConfetti,350);
 
-  renderGrids();renderCharts();
+  renderGrids();renderCharts();renderTerminalLogs();
   DOM.stickyStrip.classList.add('visible');
-
-  // ───── GUIDED SCROLL TOUR ─────
-  // Smoothly scroll through each section so user watches each animate in
   guidedScrollTour();
 }
 
@@ -1525,8 +1510,6 @@ function guidedScrollTour(){
     {el:document.querySelector('.grids-section'), delay:2800, label:'Grids'},
     {el:document.querySelector('.charts-section'), delay:4400, label:'Charts'},
   ];
-
-  // Reset cascade classes so they animate fresh
   document.querySelectorAll('.cascade-children.cascaded').forEach(el=>el.classList.remove('cascaded'));
   document.querySelectorAll('.reveal.revealed').forEach(el=>{
     if(DOM.results.contains(el)){el.classList.remove('revealed')}
@@ -1539,16 +1522,12 @@ function guidedScrollTour(){
     if(!s.el)return;
     setTimeout(()=>{
       s.el.scrollIntoView({behavior:'smooth',block:'center'});
-      // Re-trigger reveals/cascades after scrolling there
       setTimeout(()=>{
-        // Trigger IntersectionObserver reveals
         observeAll();
-        // Force cascade trigger
         document.querySelectorAll('.cascade-children:not(.cascaded)').forEach(cel=>{
           const rect=cel.getBoundingClientRect();
           if(rect.top<window.innerHeight)cel.classList.add('cascaded');
         });
-        // Force scroll-glow
         document.querySelectorAll('.scroll-glow-border').forEach(gel=>{
           const rect=gel.getBoundingClientRect();
           const inView=rect.top<window.innerHeight*0.8&&rect.bottom>window.innerHeight*0.1;
@@ -1570,9 +1549,7 @@ function getWinExp(k,r){
   return e[k]+x;
 }
 
-/* ====================================================================
-   GRIDS
-   ==================================================================== */
+
 function renderGrids(){
   const r=simResults,ref=r._ref,f=r._frames;
   DOM.gridsContainer.innerHTML=ALGOS.map(a=>{
@@ -1603,9 +1580,7 @@ function renderGrids(){
   }).join('');
 }
 
-/* ====================================================================
-   CHARTS
-   ==================================================================== */
+
 function getTC(){
   const d=document.documentElement.getAttribute('data-theme')==='dark';
   return{text:d?'#a8a49c':'#3d3a36',grid:d?'rgba(255,255,255,.05)':'rgba(0,0,0,.06)',
@@ -1632,9 +1607,7 @@ function renderCharts(){
   });
 }
 
-/* ====================================================================
-   STEP-THROUGH — with cell pop + fault shake + hit glow
-   ==================================================================== */
+
 function enterStepMode(){if(!simResults)return;stepMode=true;currentStepIdx=0;DOM.stepControls.classList.remove('hidden');DOM.totalSteps.textContent=simResults._ref.length;updateStepDisplay()}
 function exitStepMode(){stepMode=false;stopAutoPlay();DOM.stepControls.classList.add('hidden');showAllCols()}
 
@@ -1664,9 +1637,7 @@ function startAutoPlay(){if(autoPlayInterval)return;DOM.btnAutoPlay.textContent=
 function stopAutoPlay(){if(autoPlayInterval){clearInterval(autoPlayInterval);autoPlayInterval=null}DOM.btnAutoPlay.textContent='⏩ Auto Play'}
 function toggleAutoPlay(){autoPlayInterval?stopAutoPlay():startAutoPlay()}
 
-/* ====================================================================
-   BELADY
-   ==================================================================== */
+
 function runBeladyDemo(){
   const br=[1,2,3,4,1,2,5,1,2,3,4,5];
   const r3=simulateFIFO(br,3),r4=simulateFIFO(br,4);
@@ -1683,9 +1654,7 @@ function runBeladyDemo(){
   DOM.beladySection.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-/* ====================================================================
-   EXPORT
-   ==================================================================== */
+
 function exportPNG(){
   if(!simResults)return;DOM.btnExportPng.textContent='⏳…';DOM.btnExportPng.disabled=true;
   html2canvas(DOM.results,{backgroundColor:document.documentElement.getAttribute('data-theme')==='dark'?'#050505':'#f5f4f1',scale:2,logging:false,useCORS:true})
@@ -1703,9 +1672,7 @@ function exportCSV(){
 
 function toggleAccordion(h){h.closest('.accordion-item').classList.toggle('open')}
 
-/* ====================================================================
-   EVENT LISTENERS
-   ==================================================================== */
+
 DOM.frameSlider.addEventListener('input',()=>{
   DOM.frameValue.textContent=DOM.frameSlider.value;
   DOM.frameValue.classList.remove('bump');void DOM.frameValue.offsetWidth;DOM.frameValue.classList.add('bump');
@@ -1735,6 +1702,13 @@ DOM.btnResetSteps.addEventListener('click',()=>{currentStepIdx=0;stopAutoPlay();
 DOM.btnBelady.addEventListener('click',runBeladyDemo);
 DOM.btnExportPng.addEventListener('click',exportPNG);
 DOM.btnExportCsv.addEventListener('click',exportCSV);
+DOM.btnToggleLogs.addEventListener('click',()=>{
+  DOM.terminalSection.classList.toggle('collapsed');
+  DOM.btnToggleLogs.textContent=DOM.terminalSection.classList.contains('collapsed')?'▶ Show Terminal Logs':'▼ Hide Terminal Logs';
+  if(!DOM.terminalSection.classList.contains('collapsed')){
+    setTimeout(()=>DOM.terminalSection.querySelector('.terminal-window').scrollIntoView({behavior:'smooth',block:'center'}),100);
+  }
+});
 document.getElementById('stickyRun').addEventListener('click',runSimulation);
 document.getElementById('stickyStep').addEventListener('click',()=>DOM.btnStepMode.click());
 document.getElementById('stickyBelady').addEventListener('click',runBeladyDemo);
@@ -1748,6 +1722,112 @@ themeToggle.addEventListener('click',()=>{if(simResults)setTimeout(renderCharts,
 
 DOM.refString.value='7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1';
 DOM.frameSlider.value=3;DOM.frameValue.textContent='3';
+
+
+function renderTerminalLogs(){
+  if(!simResults)return;
+  const r=simResults,ref=r._ref,f=r._frames;
+  const L=[];
+  const pad=(n,w)=>String(n).padStart(w,' ');
+  L.push('<span class="log-prompt">$</span> <span class="log-bold">./page_replacement_sim</span> --frames='+f+' --ref="'+ref.join(' ')+'"');
+  L.push('<span class="log-separator">────────────────────────────────────────────────────────────────</span>');
+  L.push('<span class="log-info">ℹ</span>  <span class="log-bold">Page Replacement Algorithm Simulator v2.0</span>');
+  L.push('<span class="log-info">ℹ</span>  Frames: <span class="log-accent">'+f+'</span> | Ref Length: <span class="log-accent">'+ref.length+'</span> | Unique Pages: <span class="log-accent">'+(new Set(ref)).size+'</span>');
+  L.push('<span class="log-separator">────────────────────────────────────────────────────────────────</span>');
+  L.push('');
+  for(const algo of ALGOS){
+    const d=r[algo.key];
+    L.push('<span class="log-prompt">$</span> <span class="log-bold">simulate --algorithm='+algo.name+'</span>');
+    L.push('<span class="log-info">['+algo.name+']</span> Initializing '+f+' page frames...');
+    L.push('<span class="log-info">['+algo.name+']</span> Processing '+ref.length+' page references...');
+    L.push('');
+    for(let i=0;i<d.trace.length;i++){
+      const t=d.trace[i];
+      const fStr='['+t.frames.join(', ')+']';
+      const sn=pad(i+1,2);
+      if(t.isFault){
+        let ev=t.evicted!==null?' | Evicted: <span class="log-warn">Page '+t.evicted+'</span>':' | <span class="log-dim">Loaded into empty frame</span>';
+        L.push('<span class="log-dim">  Step '+sn+':</span> Page <span class="log-accent">'+t.page+'</span> → <span class="log-fault log-bold">PAGE FAULT</span>'+ev);
+      } else {
+        L.push('<span class="log-dim">  Step '+sn+':</span> Page <span class="log-accent">'+t.page+'</span> → <span class="log-hit log-bold">HIT</span> <span class="log-dim">(page in memory)</span>');
+      }
+      L.push('<span class="log-dim">          Frames: </span><span class="log-info">'+fStr+'</span>');
+    }
+    L.push('');
+    const hr=ref.length?((d.hits/ref.length)*100).toFixed(1):'0.0';
+    const fr2=ref.length?((d.faults/ref.length)*100).toFixed(1):'0.0';
+    L.push('<span class="log-separator">  ──────────────────────────────────────────────────</span>');
+    L.push('<span class="log-info">['+algo.name+']</span> <span class="log-bold">Results:</span>');
+    L.push('  Total Faults : <span class="log-fault log-bold">'+d.faults+'</span>');
+    L.push('  Total Hits   : <span class="log-hit log-bold">'+d.hits+'</span>');
+    L.push('  Hit Ratio    : <span class="log-accent">'+hr+'%</span>');
+    L.push('  Fault Ratio  : <span class="log-warn">'+fr2+'%</span>');
+    L.push('  Miss Penalty : <span class="log-warn">'+(d.faults*10)+'ms</span>');
+    L.push('<span class="log-info">['+algo.name+']</span> <span class="log-hit">✓ Complete</span>');
+    L.push('');
+    L.push('<span class="log-separator">════════════════════════════════════════════════════════════════</span>');
+    L.push('');
+  }
+  let bk2='opt',bf2=Infinity;
+  for(const a of ALGOS) if(r[a.key].faults<bf2){bf2=r[a.key].faults;bk2=a.key}
+  const wn=ALGOS.find(a=>a.key===bk2);
+  L.push('<span class="log-prompt">$</span> <span class="log-bold">compare --all</span>');
+  L.push('');
+  L.push('<span class="log-info">╔══════════════════════════════════════════════════════╗</span>');
+  L.push('<span class="log-info">║</span>         <span class="log-bold">ALGORITHM COMPARISON SUMMARY</span>              <span class="log-info">║</span>');
+  L.push('<span class="log-info">╠══════════════════════════════════════════════════════╣</span>');
+  L.push('<span class="log-info">║</span>  Algorithm  │  Faults  │  Hits  │  Hit Rate       <span class="log-info">║</span>');
+  L.push('<span class="log-info">║</span>  ──────────┼──────────┼────────┼──────────────   <span class="log-info">║</span>');
+  for(const a of ALGOS){
+    const dd=r[a.key];
+    const hhr=ref.length?((dd.hits/ref.length)*100).toFixed(1):'0.0';
+    const nm=a.name.padEnd(10);
+    const fl=pad(dd.faults,5);
+    const hl=pad(dd.hits,5);
+    const hp=(hhr+'%').padStart(7);
+    const mk=a.key===bk2?' ★':'  ';
+    L.push('<span class="log-info">║</span>  '+nm+'│ '+fl+'    │ '+hl+'  │  '+hp+' '+mk+'     <span class="log-info">║</span>');
+  }
+  L.push('<span class="log-info">╠══════════════════════════════════════════════════════╣</span>');
+  L.push('<span class="log-info">║</span>  <span class="log-hit log-bold">★ WINNER: '+wn.name+'</span> with only <span class="log-hit log-bold">'+bf2+'</span> page faults             <span class="log-info">║</span>');
+  L.push('<span class="log-info">╚══════════════════════════════════════════════════════╝</span>');
+  L.push('');
+  L.push('<span class="log-prompt">$</span> <span class="log-dim">█</span>');
+  DOM.terminalBody.innerHTML=L.map(l=>'<div class="log-line">'+l+'</div>').join('');
+}
+
+function exportPNG(){
+  if(!simResults) return alert("Run simulation first!");
+  const orig=DOM.btnExportPng.textContent;
+  DOM.btnExportPng.textContent='Saving...';
+  html2canvas(document.querySelector('.container'), {backgroundColor: getComputedStyle(document.body).backgroundColor}).then(canvas => {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'OS_Simulator_Result.png';
+    a.click();
+    DOM.btnExportPng.textContent=orig;
+  }).catch(e=>{
+    console.error(e);
+    alert("PNG Export Error");
+    DOM.btnExportPng.textContent=orig;
+  });
+}
+
+function exportCSV(){
+  if(!simResults) return alert("Run simulation first!");
+  let csv="Algorithm,Faults,Hits,Hit Ratio\n";
+  ALGOS.forEach(a=>{
+    const d=simResults[a.key];
+    const hr = simResults._ref.length ? ((d.hits/simResults._ref.length)*100).toFixed(1) : 0;
+    csv+=`${a.name},${d.faults},${d.hits},${hr}%\n`;
+  });
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('href', url);
+  a.setAttribute('download', 'page_replacement_stats.csv');
+  a.click();
+}
 </script>
 </body>
 </html>
