@@ -765,6 +765,222 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
 .log-separator{color:#30363d}
 .terminal-section.collapsed .terminal-window{display:none}
 
+/* ========================================================
+   ☄️  METEOR SYSTEM - GPU-ONLY ANIMATIONS
+   ======================================================== */
+
+#meteorCanvas{
+  position:fixed;inset:0;z-index:3;pointer-events:none;
+}
+
+/* Glitch effect on hero h1 */
+.glitch-wrap{position:relative;display:inline-block}
+.glitch-wrap::before,.glitch-wrap::after{
+  content:attr(data-text);
+  position:absolute;inset:0;
+  background:var(--bg);
+  clip-path:inset(0 0 100% 0);
+  pointer-events:none;
+}
+.glitch-wrap::before{
+  color:#ef4444;
+  animation:glitch-before 3.5s infinite steps(1);
+}
+.glitch-wrap::after{
+  color:#06b6d4;
+  animation:glitch-after 3.5s infinite steps(1);
+}
+@keyframes glitch-before{
+  0%,85%,100%{clip-path:inset(0 0 100% 0);transform:translate(0,0)}
+  86%{clip-path:inset(20% 0 50% 0);transform:translate(-3px,0)}
+  88%{clip-path:inset(55% 0 15% 0);transform:translate(3px,0)}
+  90%{clip-path:inset(30% 0 30% 0);transform:translate(-2px,0)}
+  92%{clip-path:inset(0 0 100% 0);transform:translate(0,0)}
+}
+@keyframes glitch-after{
+  0%,87%,100%{clip-path:inset(0 0 100% 0);transform:translate(0,0)}
+  88%{clip-path:inset(10% 0 70% 0);transform:translate(4px,0)}
+  90%{clip-path:inset(60% 0 10% 0);transform:translate(-4px,0)}
+  92%{clip-path:inset(40% 0 40% 0);transform:translate(2px,0)}
+  94%{clip-path:inset(0 0 100% 0);transform:translate(0,0)}
+}
+
+/* Meteor HUD */
+.meteor-hud{
+  position:fixed;top:20px;left:20px;z-index:1000;
+  display:flex;flex-direction:column;gap:6px;
+  pointer-events:none;
+}
+.meteor-hud-badge{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(239,68,68,0.4);
+  border-radius:100px;padding:5px 14px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;font-weight:700;
+  color:#ef4444;letter-spacing:.06em;
+  box-shadow:0 0 20px rgba(239,68,68,0.15);
+  transition:border-color .3s, box-shadow .3s;
+}
+.meteor-hud-badge.hit-flash{
+  border-color:rgba(239,68,68,0.9);
+  box-shadow:0 0 30px rgba(239,68,68,0.5);
+}
+.meteor-hud-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#ef4444;
+  animation:hudPulse 1.2s ease-in-out infinite;
+}
+@keyframes hudPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.6)}}
+
+[data-theme="light"] .meteor-hud-badge{
+  background:rgba(255,255,255,0.85);
+  color:#dc2626;
+  border-color:rgba(220,38,38,0.3);
+}
+
+/* Impact flash overlay */
+.impact-flash{
+  position:fixed;inset:0;z-index:9990;pointer-events:none;
+  background:radial-gradient(circle at var(--ix,50%) var(--iy,50%),
+    rgba(255,100,50,0.25) 0%, transparent 60%);
+  opacity:0;
+  animation:impactFlash .5s ease-out forwards;
+}
+@keyframes impactFlash{
+  0%{opacity:1}
+  100%{opacity:0}
+}
+
+/* Shockwave ring - spawned by JS */
+.shockwave{
+  position:fixed;z-index:9989;pointer-events:none;
+  border-radius:50%;border:2px solid currentColor;
+  transform:translate(-50%,-50%) scale(0);
+  animation:shockwaveExpand .8s cubic-bezier(.2,0,.8,1) forwards;
+}
+@keyframes shockwaveExpand{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:1}
+  100%{transform:translate(-50%,-50%) scale(1);opacity:0}
+}
+
+/* Crater dot - persistent glow left on impact */
+.crater{
+  position:fixed;z-index:2;pointer-events:none;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  animation:craterFade 8s ease forwards;
+}
+@keyframes craterFade{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(1.5)}
+  20%{opacity:.8;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}
+}
+
+/* Smoke particle */
+.smoke{
+  position:fixed;z-index:4;pointer-events:none;
+  border-radius:50%;
+  animation:smokeDrift var(--sd,2s) ease-out forwards;
+  transform-origin:center;
+}
+@keyframes smokeDrift{
+  0%{opacity:.8;transform:translate(-50%,-50%) scale(0.2)}
+  100%{opacity:0;transform:translate(calc(-50% + var(--sx,0px)),calc(-50% + var(--sy,-60px))) scale(2.5)}
+}
+
+/* Screen shake via CSS class */
+.screen-shake{
+  animation:screenShake .35s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes screenShake{
+  0%,100%{transform:translate(0,0)}
+  10%{transform:translate(-6px,-3px)}
+  20%{transform:translate(6px,3px)}
+  30%{transform:translate(-5px,2px)}
+  40%{transform:translate(5px,-2px)}
+  50%{transform:translate(-4px,1px)}
+  60%{transform:translate(4px,1px)}
+  70%{transform:translate(-3px,-1px)}
+  80%{transform:translate(3px,0px)}
+  90%{transform:translate(-1px,1px)}
+}
+
+/* Crazy glitch badge on hero */
+.glitch-badge{
+  position:relative;overflow:hidden;
+}
+.glitch-badge::after{
+  content:'⚡ LIVE';
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  color:#fbbf24;font-size:.7rem;font-weight:900;letter-spacing:.1em;
+  animation:badgeGlitch 6s infinite steps(1);
+  opacity:0;
+}
+@keyframes badgeGlitch{
+  0%,94%,100%{opacity:0;transform:translate(0,0)}
+  95%{opacity:1;transform:translate(2px,0)}
+  97%{opacity:1;transform:translate(-2px,0)}
+  99%{opacity:0}
+}
+
+/* Meteor intro countdown overlay */
+#meteorIntro{
+  position:fixed;inset:0;z-index:9998;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.92);
+  pointer-events:none;
+  transition:opacity .8s ease;
+}
+#meteorIntro.fade-out{opacity:0}
+#meteorIntro.gone{display:none}
+
+.intro-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(1.2rem,4vw,2.2rem);
+  font-weight:900;
+  color:#fff;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  text-align:center;
+  margin-bottom:1rem;
+  text-shadow:0 0 40px rgba(239,68,68,0.8);
+  animation:introTitlePop .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes introTitlePop{from{opacity:0;transform:scale(.5) translateY(-20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.intro-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;color:rgba(255,255,255,.5);
+  letter-spacing:.1em;text-align:center;
+  animation:introSubFade .5s .2s ease both;
+}
+@keyframes introSubFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.intro-bar-wrap{
+  width:200px;height:3px;
+  background:rgba(255,255,255,.1);border-radius:3px;
+  margin-top:1.5rem;overflow:hidden;
+  animation:introSubFade .5s .3s ease both;
+}
+.intro-bar{
+  height:100%;width:0;
+  background:linear-gradient(90deg,#ef4444,#f97316,#eab308);
+  border-radius:3px;
+  transition:width .05s linear;
+}
+.intro-words{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+  max-width:500px;margin-top:1.2rem;
+}
+.intro-word{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;font-weight:700;
+  letter-spacing:.08em;padding:3px 10px;border-radius:4px;
+  opacity:0;transform:scale(0);
+  transition:opacity .3s, transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.intro-word.pop{opacity:1;transform:scale(1)}
 </style>
 </head>
 <body>
@@ -778,6 +994,40 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
 <div class="cursor-glow" id="cursorGlow"></div>
 <canvas id="confettiCanvas"></canvas>
 
+<!-- ☄️ METEOR SYSTEM ELEMENTS -->
+<canvas id="meteorCanvas"></canvas>
+
+<!-- Impact Flash Overlay (spawned dynamically) -->
+
+<!-- Meteor HUD -->
+<div class="meteor-hud" id="meteorHud">
+  <div class="meteor-hud-badge" id="meteorHudBadge">
+    <div class="meteor-hud-dot"></div>
+    <span id="meteorImpactCount">0 IMPACTS</span>
+  </div>
+  <div class="meteor-hud-badge" style="border-color:rgba(99,102,241,0.4);color:#818cf8;box-shadow:0 0 20px rgba(99,102,241,0.15);">
+    <div class="meteor-hud-dot" style="background:#818cf8;animation-delay:.3s"></div>
+    <span id="meteorSpeedLabel">INCOMING ☄️</span>
+  </div>
+</div>
+
+<!-- Meteor Intro Overlay -->
+<div id="meteorIntro">
+  <div class="intro-title">☄️ METEOR STORM INCOMING</div>
+  <div class="intro-sub">BRACE FOR IMPACT — OS MEMORY DISRUPTION IN PROGRESS</div>
+  <div class="intro-words" id="introWords">
+    <span class="intro-word" style="color:#ef4444;background:rgba(239,68,68,.15)">PAGE FAULT</span>
+    <span class="intro-word" style="color:#7c3aed;background:rgba(124,58,237,.15)">FIFO</span>
+    <span class="intro-word" style="color:#0891b2;background:rgba(8,145,178,.15)">LRU</span>
+    <span class="intro-word" style="color:#d97706;background:rgba(217,119,6,.15)">LFU</span>
+    <span class="intro-word" style="color:#059669;background:rgba(5,150,105,.15)">OPTIMAL</span>
+    <span class="intro-word" style="color:#f97316;background:rgba(249,115,22,.15)">EVICT</span>
+    <span class="intro-word" style="color:#ec4899;background:rgba(236,72,153,.15)">THRASH</span>
+    <span class="intro-word" style="color:#06b6d4;background:rgba(6,182,212,.15)">CACHE</span>
+  </div>
+  <div class="intro-bar-wrap"><div class="intro-bar" id="introBar"></div></div>
+</div>
+
 <button class="theme-toggle" id="themeToggle" title="Toggle theme">
   <div class="toggle-knob" id="toggleKnob">☀️</div>
 </button>
@@ -787,7 +1037,7 @@ footer a{color:var(--accent);text-decoration:none;font-weight:600}
   <div class="hero-ring"><div class="hero-ring-inner"></div></div>
   <div class="container" style="position:relative;z-index:1;">
     <div class="hero-badge"><span class="badge-dot"></span>Operating Systems · Virtual Memory</div>
-    <h1>Page Replacement<span class="line2">Algorithm Simulator</span></h1>
+    <h1><span class="glitch-wrap" data-text="Page Replacement">Page Replacement</span><span class="line2">Algorithm Simulator</span></h1>
     <p class="hero-sub">Interactive comparison of all four OS page replacement algorithms with real-time step visualization, performance charts & Belady's Anomaly demo.</p>
     <div class="algo-pills">
       <div class="pill pill-fifo"><span class="pill-dot"></span>FIFO</div>
@@ -1429,7 +1679,6 @@ function animateCount(el,target,dur=900){
 function typeWriter(el,text,speed=30){el.textContent='';let i=0;(function t(){if(i<text.length){el.textContent+=text.charAt(i);i++;setTimeout(t,speed)}}())}
 
 
-// fifo logic
 function simulateFIFO(r,f){
   console.log("fifo chalu hua", f);
   const m=[];let p=0,fa=0,h=0;const t=[];for(let i=0;i<r.length;i++){const pg=r[i];if(m.includes(pg)){h++;t.push({page:pg,frames:[...m],isFault:false,evicted:null})}else{fa++;let ev=null;if(m.length<f)m.push(pg);else{ev=m[p];m[p]=pg;p=(p+1)%f}t.push({page:pg,frames:[...m],isFault:true,evicted:ev})}}
@@ -1828,6 +2077,410 @@ function exportCSV(){
   a.setAttribute('download', 'page_replacement_stats.csv');
   a.click();
 }
+</script>
+<script>
+(function() {
+  'use strict';
+
+  const WORDS = [
+    'PAGE FAULT','FIFO','LRU','LFU','CACHE','EVICT','MEMORY',
+    'FRAME','HIT!','MISS','OPTIMAL','THRASH','VIRTUAL','OS KERNEL',
+    'BUFFER','QUEUE','STACK','DIRTY BIT','TLB','SWAP','PAGING'
+  ];
+  const COLORS = [
+    '#ef4444','#f97316','#eab308','#22c55e',
+    '#06b6d4','#7c3aed','#ec4899','#3b82f6',
+    '#a855f7','#14b8a6','#f59e0b','#10b981'
+  ];
+  const MAX_METEORS   = 14;
+  const TRAIL_LEN     = 28;
+  const INTRO_COUNT   = 9;
+  const AMBIENT_MS    = 2800;
+
+  const cvs = document.getElementById('meteorCanvas');
+  const ctx = cvs.getContext('2d', { alpha: true });
+  let W = 0, H = 0;
+  function resize() {
+    W = cvs.width  = window.innerWidth;
+    H = cvs.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  let impacts    = 0;
+  let meteors    = [];
+  let shockwaves = []; 
+  let crumbles   = []; 
+  let introPhase = true;
+  let lastSpawn  = 0;
+  let introLaunched = 0;
+
+  const hudBadge = document.getElementById('meteorHudBadge');
+  const hudCount = document.getElementById('meteorImpactCount');
+  const hudSpeed = document.getElementById('meteorSpeedLabel');
+  const SPEED_LABELS = ['INCOMING ☄️','BRACE YOURSELF','HEAVY BARRAGE','CRITICAL MASS','SYSTEM CHAOS','MEMORY STORM'];
+
+  function updateHud(impactX, impactY) {
+    impacts++;
+    hudCount.textContent = impacts + (impacts === 1 ? ' IMPACT' : ' IMPACTS');
+    hudBadge.classList.add('hit-flash');
+    setTimeout(() => hudBadge.classList.remove('hit-flash'), 400);
+    const si = Math.min(Math.floor(impacts / 3), SPEED_LABELS.length - 1);
+    hudSpeed.textContent = SPEED_LABELS[si];
+  }
+
+  const introEl    = document.getElementById('meteorIntro');
+  const introBar   = document.getElementById('introBar');
+  const introWords = Array.from(document.querySelectorAll('.intro-word'));
+
+  let introProgress = 0;
+  const INTRO_DURATION = 2800;
+  const introStart = performance.now();
+
+  function tickIntro(now) {
+    const elapsed = now - introStart;
+    introProgress = Math.min(elapsed / INTRO_DURATION, 1);
+    introBar.style.width = (introProgress * 100) + '%';
+
+    const wIdx = Math.floor(introProgress * introWords.length);
+    for (let i = 0; i <= wIdx && i < introWords.length; i++) {
+      if (!introWords[i].classList.contains('pop')) {
+        introWords[i].classList.add('pop');
+      }
+    }
+
+    if (introProgress >= 1) {
+      introEl.classList.add('fade-out');
+      setTimeout(() => { introEl.classList.add('gone'); introPhase = false; }, 900);
+    }
+  }
+
+  class Meteor {
+    constructor(fast) {
+      this.alive = true;
+      this.fast  = fast;
+
+      this.tx = W * (0.08 + Math.random() * 0.84);
+      this.ty = H * (0.08 + Math.random() * 0.75);
+
+      const edge = Math.random();
+      if (edge < 0.5) {        
+        this.x = W * (0.1 + Math.random() * 0.8);
+        this.y = -100;
+      } else if (edge < 0.75) { 
+        this.x = W + 100;
+        this.y = H * (Math.random() * 0.6);
+      } else {                   
+        this.x = W * (0.6 + Math.random() * 0.6);
+        this.y = -100;
+      }
+
+      const dx   = this.tx - this.x;
+      const dy   = this.ty - this.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      const spd  = fast ? (28 + Math.random() * 18) : (12 + Math.random() * 14);
+      this.vx    = (dx / dist) * spd;
+      this.vy    = (dy / dist) * spd;
+      this.angle = Math.atan2(dy, dx);
+
+      this.word  = WORDS[Math.floor(Math.random() * WORDS.length)];
+      this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      this.size  = fast ? (18 + Math.random() * 20) : (13 + Math.random() * 16);
+
+      this.trail = [];
+      this.opacity = 1;
+      this.done  = false;
+    }
+
+    update() {
+      if (this.done) return;
+
+      this.trail.push({ x: this.x, y: this.y });
+      if (this.trail.length > TRAIL_LEN) this.trail.shift();
+
+      this.x += this.vx;
+      this.y += this.vy;
+
+      const dx = this.tx - this.x;
+      const dy = this.ty - this.y;
+      if (Math.sqrt(dx*dx + dy*dy) < Math.abs(this.vx) + 4) {
+        this.impact();
+        return;
+      }
+
+      if (this.x < -250 || this.x > W+250 || this.y < -250 || this.y > H+250) {
+        this.done = true;
+      }
+    }
+
+    impact() {
+      this.done = true;
+      spawnImpact(this.tx, this.ty, this.color, this.word, this.size);
+      updateHud(this.tx, this.ty);
+    }
+
+    draw() {
+      if (this.done) return;
+      const tl = this.trail.length;
+      if (tl < 2) return;
+
+      ctx.save();
+
+      for (let i = 1; i < tl; i++) {
+        const pct   = i / tl;
+        const p0    = this.trail[i-1];
+        const p1    = this.trail[i];
+        const alpha = pct * 0.65;
+        const width = this.size * 0.22 * pct;
+
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.lineTo(p1.x, p1.y);
+        ctx.strokeStyle = this.color;
+        ctx.globalAlpha = alpha;
+        ctx.lineWidth   = Math.max(1, width);
+        ctx.lineCap     = 'round';
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha = 0.9;
+      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 0.9);
+      grad.addColorStop(0, this.color);
+      grad.addColorStop(0.4, this.color + 'aa');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 0.9, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle   = '#fff';
+      ctx.font        = `900 ${Math.round(this.size * 0.75)}px 'JetBrains Mono', monospace`;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline= 'middle';
+      
+      ctx.fillStyle = this.color;
+      ctx.fillText(this.word, 2, 2);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(this.word, 0, 0);
+      ctx.restore();
+
+      ctx.restore();
+    }
+  }
+
+
+  function spawnImpact(x, y, color, word, size) {
+
+    triggerShake();
+
+    const flash = document.createElement('div');
+    flash.className = 'impact-flash';
+    flash.style.cssText = `--ix:${(x/W*100).toFixed(1)}%;--iy:${(y/H*100).toFixed(1)}%`;
+    document.body.appendChild(flash);
+    flash.addEventListener('animationend', () => flash.remove());
+
+    for (let i = 0; i < 3; i++) {
+      const sw = document.createElement('div');
+      const swSize = (80 + i * 60) * (size / 24);
+      sw.className = 'shockwave';
+      sw.style.cssText = `
+        left:${x}px;top:${y}px;
+        width:${swSize}px;height:${swSize}px;
+        color:${color};
+        animation-delay:${i * 0.08}s;
+        animation-duration:${0.7 + i * 0.1}s;
+      `;
+      document.body.appendChild(sw);
+      sw.addEventListener('animationend', () => sw.remove());
+    }
+
+    const crater = document.createElement('div');
+    const cs = 8 + size * 0.3;
+    crater.className = 'crater';
+    crater.style.cssText = `
+      left:${x}px;top:${y}px;
+      width:${cs}px;height:${cs}px;
+      background:radial-gradient(circle,${color}cc 0%,${color}33 60%,transparent 100%);
+      box-shadow:0 0 ${cs*2}px ${cs}px ${color}44;
+    `;
+    document.body.appendChild(crater);
+    crater.addEventListener('animationend', () => crater.remove());
+
+    for (let i = 0; i < 6; i++) {
+      const smoke = document.createElement('div');
+      const angle = (Math.PI * 2 / 6) * i + (Math.random() - 0.5) * 0.8;
+      const dist  = 30 + Math.random() * 50;
+      const sx    = Math.cos(angle) * dist;
+      const sy    = Math.sin(angle) * dist - 20;
+      const sw2   = 8 + Math.random() * 12;
+      smoke.className = 'smoke';
+      smoke.style.cssText = `
+        left:${x}px;top:${y}px;
+        width:${sw2}px;height:${sw2}px;
+        background:${color}55;
+        --sd:${1.2 + Math.random() * 0.8}s;
+        --sx:${sx.toFixed(0)}px;
+        --sy:${sy.toFixed(0)}px;
+        animation-delay:${Math.random() * 0.1}s;
+      `;
+      document.body.appendChild(smoke);
+      smoke.addEventListener('animationend', () => smoke.remove());
+    }
+
+    spawnCrazyText(x, y, color, word);
+  }
+
+  function spawnCrazyText(x, y, color, word) {
+    const el = document.createElement('div');
+    const finalX = x + (Math.random() - 0.5) * 120;
+    const finalY = y - 60 - Math.random() * 80;
+    const rot    = (Math.random() - 0.5) * 30;
+    const fsize  = 11 + Math.random() * 10;
+
+    el.style.cssText = `
+      position:fixed;z-index:9985;pointer-events:none;
+      left:${x}px;top:${y}px;
+      font-family:'JetBrains Mono',monospace;
+      font-size:${fsize}px;font-weight:900;
+      color:${color};
+      text-shadow:0 0 10px ${color},0 0 20px ${color}88;
+      white-space:nowrap;letter-spacing:.06em;
+      transform:translate(-50%,-50%) rotate(${rot}deg) scale(1.5);
+      opacity:1;
+      transition:transform 1.4s cubic-bezier(.22,1,.36,1),opacity 1.4s ease;
+      will-change:transform,opacity;
+    `;
+    el.textContent = word;
+    document.body.appendChild(el);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const tx = finalX - x;
+        const ty = finalY - y;
+        el.style.transform = `translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) rotate(${rot*0.3}deg) scale(1)`;
+        el.style.opacity = '0';
+      });
+    });
+    setTimeout(() => el.remove(), 1600);
+  }
+
+  let shaking = false;
+  const mainEl = document.querySelector('main');
+  function triggerShake() {
+    if (shaking) return;
+    shaking = true;
+    mainEl.classList.add('screen-shake');
+    mainEl.addEventListener('animationend', () => {
+      mainEl.classList.remove('screen-shake');
+      shaking = false;
+    }, { once: true });
+  }
+
+  function spawnMeteor(fast) {
+    if (meteors.length < MAX_METEORS) {
+      meteors.push(new Meteor(fast));
+    }
+  }
+
+  for (let i = 0; i < INTRO_COUNT; i++) {
+    setTimeout(() => spawnMeteor(true), 300 + i * 280);
+  }
+
+  let raf;
+  function loop(now) {
+    ctx.clearRect(0, 0, W, H);
+
+    if (introPhase) tickIntro(now);
+
+    if (!introPhase && now - lastSpawn > AMBIENT_MS) {
+      spawnMeteor(false);
+      lastSpawn = now;
+    }
+
+  
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      meteors[i].update();
+      meteors[i].draw();
+      if (meteors[i].done) meteors.splice(i, 1);
+    }
+
+    raf = requestAnimationFrame(loop);
+  }
+  raf = requestAnimationFrame(loop);
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('.btn, .theme-toggle, input, select, .accordion-head')) return;
+    const m = new Meteor(true);
+    m.tx = e.clientX;
+    m.ty = e.clientY;
+    const dx   = m.tx - m.x;
+    const dy   = m.ty - m.y;
+    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    const spd  = 30;
+    m.vx = (dx / dist) * spd;
+    m.vy = (dy / dist) * spd;
+    m.angle = Math.atan2(dy, dx);
+    meteors.push(m);
+  }, { passive: true });
+
+  const GLITCH_CHARS = '!@#$%^&*01PAGE_FAULT_LRU_FIFO';
+  document.querySelectorAll('.section-heading').forEach(el => {
+    const original = el.textContent;
+    let glitchTimer = null;
+
+    el.addEventListener('mouseenter', () => {
+      let frame = 0;
+      clearInterval(glitchTimer);
+      glitchTimer = setInterval(() => {
+        if (frame++ > 6) {
+          el.textContent = original;
+          clearInterval(glitchTimer);
+          return;
+        }
+        el.textContent = original.split('').map((c, i) =>
+          c !== ' ' && Math.random() < 0.3
+            ? GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]
+            : c
+        ).join('');
+      }, 60);
+    });
+    el.addEventListener('mouseleave', () => {
+      clearInterval(glitchTimer);
+      el.textContent = original;
+    });
+  });
+
+  document.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('mouseenter', () => {
+      const r = pill.getBoundingClientRect();
+      const tx = r.left + r.width/2;
+      const ty = r.top + r.height/2;
+      const m = new Meteor(true);
+      m.tx = tx; m.ty = ty;
+      const color = {
+        'pill-fifo': '#7c3aed',
+        'pill-lru':  '#0891b2',
+        'pill-lfu':  '#d97706',
+        'pill-opt':  '#059669'
+      };
+      for (const cls of pill.classList) {
+        if (color[cls]) { m.color = color[cls]; break; }
+      }
+      m.word = pill.textContent.trim();
+      m.size = 14;
+      const dx = m.tx - m.x, dy = m.ty - m.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      m.vx = (dx/dist) * 35; m.vy = (dy/dist) * 35;
+      m.angle = Math.atan2(dy, dx);
+      meteors.push(m);
+    });
+  });
+
+})();
 </script>
 </body>
 </html>
