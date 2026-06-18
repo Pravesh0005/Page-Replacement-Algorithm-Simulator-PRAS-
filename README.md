@@ -33,7 +33,7 @@
 
 <br/>
 
-**[🚀 Live Demo](#-live-demo) • [✨ Features](#-features) • [📸 Screenshots](#-screenshots) • [⚙️ How It Works](#️-how-it-works) • [🛠 Tech Stack](#-tech-stack) • [🤝 Contributing](#-contributing)**
+**[🚀 Live Demo](#-live-demo) • [✨ Features](#-features) • [🎮 Interactive Experience](#-interactive-experience) • [⚙️ How It Works](#️-how-it-works) • [🛠 Tech Stack](#-tech-stack) • [🤝 Contributing](#-contributing)**
 
 </div>
 
@@ -156,7 +156,7 @@ User Input:
 
 ---
 
-## 📸 Screenshots
+## 🎮 Interactive Experience
 
 <div align="center">
 
