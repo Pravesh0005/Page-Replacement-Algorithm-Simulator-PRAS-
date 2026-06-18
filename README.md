@@ -189,13 +189,13 @@ User Input:
 
 ### 👇👇👇👇👇👇👇👇👇👇👇👇👇
 
-# 🚀 OPEN PRAS LIVE DEMO
+# 🚀 [OPEN PRAS LIVE DEMO](https://pras-os.netlify.app/)
 
 ### 👆👆👆👆👆👆👆👆👆👆👆👆👆
 
 <br>
 
-[![🚀 TRY IT NOW](https://img.shields.io/badge/🚀_TRY_IT_NOW-LIVE_DEMO-ff4d4d?style=for-the-badge&logo=netlify&logoColor=white)](https://pras-os.netlify.app/)
+[![🚀 TRY IT NOW](https://img.shields.io/badge/🚀_TRY_IT_NOW-LIVE_DEMO-ff4d4d?style=for-the-badge&logo=netlify&logoColor=white)]
 
 <br>
 
