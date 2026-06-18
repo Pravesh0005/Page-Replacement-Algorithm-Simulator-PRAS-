@@ -33,13 +33,13 @@
 
 <br/>
 
-**[🚀 Live Demo](#-live-demo) • [✨ Features](#-features) • [🎮 Interactive Experience](#-interactive-experience) • [⚙️ How It Works](#️-how-it-works) • [🛠 Tech Stack](#-tech-stack) • [🤝 Contributing](#-contributing)**
+**[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🎮 Interactive Experience](#-interactive-experience) • 🌐 [Live Preview](#-live-preview) • [⚙️ How It Works](#️-how-it-works) • [🛠 Tech Stack](#-tech-stack) • [🤝 Contributing](#-contributing)**
 
 </div>
 
 ---
 
-## 🚀 Live Demo
+## 🚀 Quick Start
 
 ```bash
 # No npm. No build. No server. Just open.
@@ -178,6 +178,48 @@ User Input:
 </div>
 
 ---
+
+## 🚀 Live Demo
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=90&section=header&text=LIVE%20DEMO&fontSize=34&fontColor=ffffff&animation=twinkling" width="100%"/>
+
+<br>
+
+### 👇👇👇👇👇👇👇👇👇👇👇👇👇
+
+[![🚀 TRY IT NOW](https://img.shields.io/badge/🚀_TRY_IT_NOW-LIVE_DEMO-ff4d4d?style=for-the-badge&logo=netlify&logoColor=white)](https://pras-os.netlify.app/)
+
+### 👆👆👆👆👆👆👆👆👆👆👆👆👆
+
+<br>
+
+**Experience PRAS directly in your browser.**
+
+**No installation • No setup • Instant access**
+
+<br>
+
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&size=18&pause=1000&color=7C3AED&center=true&vCenter=true&width=900&lines=Compare+FIFO+vs+LRU+vs+LFU+vs+OPT;Visualize+Every+Page+Fault+and+Memory+Hit;Explore+Belady's+Anomaly+Interactively;Powered+by+Animated+Charts+and+3D+Visuals" alt="Typing SVG" />
+
+<br>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=70&section=footer" width="100%"/>
+
+</div>
+
+---
+
+### ✨ What You Can Explore
+
+- 📊 Compare FIFO, LRU, LFU & OPT simultaneously
+- 🎯 Visualize Belady's Anomaly in real time
+- 📈 Interactive memory and page fault charts
+- ⚡ Step-by-step page replacement tracing
+- 🌌 Animated 3D background environment
+- 💾 Export results as PNG snapshots
+- 📄 Export analytics as CSV reports
 
 ## 🛠 Tech Stack
 
