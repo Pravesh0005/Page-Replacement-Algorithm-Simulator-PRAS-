@@ -179,7 +179,7 @@ User Input:
 
 ---
 
-## 🚀 Live Demo
+## 🌐 Live Demo
 
 <div align="center">
 
@@ -189,9 +189,13 @@ User Input:
 
 ### 👇👇👇👇👇👇👇👇👇👇👇👇👇
 
-[![🚀 TRY IT NOW](https://img.shields.io/badge/🚀_TRY_IT_NOW-LIVE_DEMO-ff4d4d?style=for-the-badge&logo=netlify&logoColor=white)](https://pras-os.netlify.app/)
+# 🚀 OPEN PRAS LIVE DEMO
 
 ### 👆👆👆👆👆👆👆👆👆👆👆👆👆
+
+<br>
+
+[![🚀 TRY IT NOW](https://img.shields.io/badge/🚀_TRY_IT_NOW-LIVE_DEMO-ff4d4d?style=for-the-badge&logo=netlify&logoColor=white)](https://pras-os.netlify.app/)
 
 <br>
 
@@ -208,6 +212,18 @@ User Input:
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=70&section=footer" width="100%"/>
 
 </div>
+
+---
+
+### ✨ What You Can Explore
+
+- 📊 Compare FIFO, LRU, LFU & OPT simultaneously
+- 🎯 Visualize Belady's Anomaly in real time
+- 📈 Interactive memory and page fault charts
+- ⚡ Step-by-step page replacement tracing
+- 🌌 Animated 3D background environment
+- 💾 Export results as PNG snapshots
+- 📄 Export analytics as CSV reports
 
 ---
 
