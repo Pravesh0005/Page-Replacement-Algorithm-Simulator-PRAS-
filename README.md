@@ -18,7 +18,7 @@
 
 <br/><br/>
 
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&size=20&pause=1200&color=7C3AED&center=true&vCenter=true&multiline=true&width=800&height=80&lines=Compare+FIFO+%7C+LRU+%7C+LFU+%7C+Optimal+side-by-side+in+real-time+⚡;Step-through+every+page+fault+%26+hit+with+animations+🎯;Export+PNG+snapshots+%26+CSV+data+%7C+Confetti+winner+reveal+🎊" alt="Typing SVG"/>
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=22&pause=1000&color=7C3AED&center=true&vCenter=true&width=1000&lines=Compare+FIFO+vs+LRU+vs+LFU+vs+OPT+in+Real-Time;Visualize+Every+Page+Fault+and+Memory+Hit;Explore+Beladys+Anomaly+Interactively;Powered+by+Three.js+Charts+and+Animations" alt="Typing SVG" />
 
 <br/><br/>
 
