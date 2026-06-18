@@ -195,9 +195,9 @@ User Input:
 
 <br>
 
-[![🚀 TRY IT NOW](https://img.shields.io/badge/🚀_TRY_IT_NOW-LIVE_DEMO-ff4d4d?style=for-the-badge&logo=netlify&logoColor=white)]
+![🚀 TRY IT NOW](https://img.shields.io/badge/🚀_TRY_IT_NOW-LIVE_DEMO-ff4d4d?style=for-the-badge&logo=netlify&logoColor=white)
 
-<br>
+<br><br>
 
 **Experience PRAS directly in your browser.**
 
