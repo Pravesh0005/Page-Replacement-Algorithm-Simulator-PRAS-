@@ -275,9 +275,11 @@ No framework. No bundler. No npm. Single file.
 ```
 page-replacement-simulator/
 │
-├── 📄 index.html          ← Entire app (HTML + CSS + JS, self-contained)
+├── 📄 LICENSE
+|
+├── 📄 README.md           ← You are here
 │
-└── 📄 README.md           ← You are here
+└── 📄 index.html          ← Entire app (HTML + CSS + JS, self-contained)
 ```
 
 > 💡 **Everything in one file** — the CSS, JavaScript, Three.js setup, Chart.js config, algorithm engines, animation system, export logic, and UI are all contained in `index.html`. Share it by sending just this file.
