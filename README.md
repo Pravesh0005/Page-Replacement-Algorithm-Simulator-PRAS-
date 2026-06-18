@@ -33,7 +33,7 @@
 
 <br/>
 
-**[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🎮 Interactive Experience](#-interactive-experience) • 🌐 [Live Preview](#-live-preview) • [⚙️ How It Works](#️-how-it-works) • [🛠 Tech Stack](#-tech-stack) • [🤝 Contributing](#-contributing)**
+**[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🎮 Interactive Experience](#-interactive-experience) • 🌐 [Live Demo](#-live-demo) • [⚙️ How It Works](#️-how-it-works) • [🛠 Tech Stack](#-tech-stack) • [🤝 Contributing](#-contributing)**
 
 </div>
 
@@ -43,8 +43,8 @@
 
 ```bash
 # No npm. No build. No server. Just open.
-git clone https://github.com/yourusername/page-replacement-simulator
-cd page-replacement-simulator
+git clone https://github.com/Pravesh0005/Page-Replacement-Algorithm-Simulator-PRAS-
+cd Page-Replacement-Algorithm-Simulator-PRAS-
 open index.html          # macOS
 start index.html         # Windows
 xdg-open index.html      # Linux
@@ -389,8 +389,8 @@ Stack algorithms (LRU, OPT) are immune to Belady's Anomaly.
 
 ```bash
 # Fork & clone
-git clone https://github.com/yourusername/page-replacement-simulator
-cd page-replacement-simulator
+git clone https://github.com/Pravesh0005/Page-Replacement-Algorithm-Simulator-PRAS-
+cd Page-Replacement-Algorithm-Simulator-PRAS-
 
 # Make your changes to index.html
 # Test in browser
